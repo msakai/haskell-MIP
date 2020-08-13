@@ -1,0 +1,108 @@
+name:                MIP
+version:             0.1.0.0
+github:              "msakai/haskell-MIP"
+license:             BSD3
+author:              "Masahiro Sakai"
+maintainer:          "masahiro.sakai@gmail.com"
+copyright:           "2020 Masahiro Sakai"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+- doc-images/MIP-Status-diagram.tex
+extra-doc-files:
+- doc-images/MIP-Status-diagram.png
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/msakai/haskell-MIP#readme>
+
+flags:
+  WithZlib:
+    description: Use zlib package to support gzipped files
+    default: True
+    manual: True
+
+  TestCBC:
+    description: run test cases that depends on cbc command
+    manual: True
+    default: False
+
+  TestCPLEX:
+    description: run test cases that depends on cplex command
+    manual: True
+    default: False
+
+  TestGlpsol:
+    description: run test cases that depends on glpsol command
+    manual: True
+    default: False
+
+  TestGurobiCl:
+    description: run test cases that depends on gurobi_cl command
+    manual: True
+    default: False
+
+  TestLPSolve:
+    description: run test cases that depends on lp_solve command
+    manual: True
+    default: False
+
+  TestSCIP:
+    description: run test cases that depends on scip command
+    manual: True
+    default: False
+
+dependencies:
+- base >= 4.7 && < 5
+- containers >=0.5.0
+- data-default-class
+- lattices
+
+library:
+  source-dirs: src
+  other-modules:
+  - Paths_MIP
+  - ToySolver.Internal.ProcessUtil
+  - ToySolver.Internal.Util
+  other-extensions:
+  - CPP
+  dependencies:
+  - extended-reals >=0.1 && <1.0
+  - filepath
+  - intern >=0.9.1.2 && <1.0.0.0
+  - megaparsec >=5 && <9
+  - mtl >=2.1.2
+  - OptDir
+  - process >=1.1.0.2
+  - scientific
+  - stm >=2.3
+  - temporary >=1.2
+  - text >=1.1.0.0
+  - xml-conduit
+  when:
+    - condition: flag(WithZlib)
+      then:
+        dependencies:
+        - case-insensitive
+        - bytestring
+        - bytestring-encoding
+        - zlib
+        cpp-options: "-DWITH_ZLIB"
+      else: {}
+
+tests:
+  MIP-test:
+    main:                TestSuite.hs
+    source-dirs:         test
+    dependencies:
+    - MIP
+    - tasty >=0.10.1
+    - tasty-hunit >=0.9 && <0.11
+    - tasty-quickcheck >=0.8 && <0.11
+    - tasty-th
