@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Internal.Util
+-- Module      :  Numeric.Optimization.MIP.Internal.Util
 -- Copyright   :  (c) Masahiro Sakai 2011-2012
 -- License     :  BSD-style
 --
@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module ToySolver.Internal.Util where
+module Numeric.Optimization.MIP.Internal.Util where
 
 import Control.Monad
 import Data.Ratio

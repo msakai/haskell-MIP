@@ -15,13 +15,13 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import Test.Tasty.TH
-import ToySolver.Data.MIP (meetStatus)
-import qualified ToySolver.Data.MIP as MIP
-import qualified ToySolver.Data.MIP.Solution.CBC as CBCSol
-import qualified ToySolver.Data.MIP.Solution.CPLEX as CPLEXSol
-import qualified ToySolver.Data.MIP.Solution.GLPK as GLPKSol
-import qualified ToySolver.Data.MIP.Solution.Gurobi as GurobiSol
-import qualified ToySolver.Data.MIP.Solution.SCIP as SCIPSol
+import Numeric.Optimization.MIP (meetStatus)
+import qualified Numeric.Optimization.MIP as MIP
+import qualified Numeric.Optimization.MIP.Solution.CBC as CBCSol
+import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
+import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
+import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
+import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
 
 prop_status_refl :: Property
 prop_status_refl = forAll arbitrary $ \(x :: MIP.Status) -> do

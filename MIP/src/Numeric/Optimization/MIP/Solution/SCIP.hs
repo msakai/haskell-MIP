@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solution.SCIP
+-- Module      :  Numeric.Optimization.MIP.Solution.SCIP
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -13,7 +13,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solution.SCIP
+module Numeric.Optimization.MIP.Solution.SCIP
   ( Solution (..)
   , parse
   , readFile
@@ -31,8 +31,8 @@ import Data.Scientific (Scientific)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
-import ToySolver.Data.MIP (Solution)
-import qualified ToySolver.Data.MIP as MIP
+import Numeric.Optimization.MIP (Solution)
+import qualified Numeric.Optimization.MIP as MIP
 
 parse :: TL.Text -> MIP.Solution Scientific
 parse t =
@@ -63,7 +63,7 @@ parse' (t1:t2:ts) = do
           case TL.words t of
             (w1:w2:_) -> return $ (intern (TL.toStrict w1), read (TL.unpack w2)) : vs
             [] -> return $ vs
-            _ -> throwError ("ToySolver.Data.MIP.Solution.SCIP: invalid line " ++ show t)
+            _ -> throwError ("Numeric.Optimization.MIP.Solution.SCIP: invalid line " ++ show t)
     vs <- foldM f [] ts
     return $
       MIP.Solution

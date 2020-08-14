@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.LPFile
+-- Module      :  Numeric.Optimization.MIP.LPFile
 -- Copyright   :  (c) Masahiro Sakai 2011-2014
 -- License     :  BSD-style
 --
@@ -28,7 +28,7 @@
 -- * <http://lpsolve.sourceforge.net/5.5/CPLEX-format.htm>
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.LPFile
+module Numeric.Optimization.MIP.LPFile
   ( parseString
   , parseFile
   , ParseError
@@ -74,9 +74,9 @@ import qualified Text.Megaparsec.Lexer as P
 import Text.Megaparsec.Prim (MonadParsec ())
 #endif
 
-import qualified ToySolver.Data.MIP.Base as MIP
-import ToySolver.Data.MIP.FileUtils (ParseError)
-import ToySolver.Internal.Util (combineMaybe)
+import qualified Numeric.Optimization.MIP.Base as MIP
+import Numeric.Optimization.MIP.FileUtils (ParseError)
+import Numeric.Optimization.MIP.Internal.Util (combineMaybe)
 
 -- ---------------------------------------------------------------------------
 
@@ -643,7 +643,7 @@ renderConstraint c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.co
           (MIP.NegInf, MIP.Finite x) -> (MIP.Le, x)
           (MIP.Finite x, MIP.PosInf) -> (MIP.Ge, x)
           (MIP.Finite x1, MIP.Finite x2) | x1==x2 -> (MIP.Eql, x1)
-          _ -> error "ToySolver.Data.MIP.LPFile.renderConstraint: should not happen"
+          _ -> error "Numeric.Optimization.MIP.LPFile.renderConstraint: should not happen"
   renderOp op
   writeChar ' '
   tell $ B.scientificBuilder val

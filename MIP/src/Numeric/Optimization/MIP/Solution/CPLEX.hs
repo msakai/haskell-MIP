@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solution.CPLEX
+-- Module      :  Numeric.Optimization.MIP.Solution.CPLEX
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -14,7 +14,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solution.CPLEX
+module Numeric.Optimization.MIP.Solution.CPLEX
   ( Solution (..)
   , parse
   , readFile
@@ -36,8 +36,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Text.XML as XML
 import Text.XML.Cursor
-import ToySolver.Data.MIP (Solution)
-import qualified ToySolver.Data.MIP.Base as MIP
+import Numeric.Optimization.MIP (Solution)
+import qualified Numeric.Optimization.MIP.Base as MIP
 
 parseDoc :: XML.Document -> MIP.Solution Scientific
 parseDoc doc =

@@ -68,8 +68,8 @@ library:
   source-dirs: src
   other-modules:
   - Paths_MIP
-  - ToySolver.Internal.ProcessUtil
-  - ToySolver.Internal.Util
+  - Numeric.Optimization.MIP.Internal.ProcessUtil
+  - Numeric.Optimization.MIP.Internal.Util
   other-extensions:
   - CPP
   dependencies:
