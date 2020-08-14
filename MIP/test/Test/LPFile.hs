@@ -9,7 +9,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.HUnit
 import Test.Tasty.TH
-import ToySolver.Data.MIP.LPFile
+import Numeric.Optimization.MIP.LPFile
 
 case_testdata       = checkString "testdata" testdata
 case_test_indicator = checkFile "samples/lp/test-indicator.lp"

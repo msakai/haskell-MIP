@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.MPSFile
+-- Module      :  Numeric.Optimization.MIP.MPSFile
 -- Copyright   :  (c) Masahiro Sakai 2012-2014
 -- License     :  BSD-style
 --
@@ -29,7 +29,7 @@
 -- * <http://en.wikipedia.org/wiki/MPS_(format)>
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.MPSFile
+module Numeric.Optimization.MIP.MPSFile
   ( parseString
   , parseFile
   , ParseError
@@ -75,8 +75,8 @@ import Text.Megaparsec.Prim (MonadParsec ())
 #endif
 
 import Data.OptDir
-import qualified ToySolver.Data.MIP.Base as MIP
-import ToySolver.Data.MIP.FileUtils (ParseError)
+import qualified Numeric.Optimization.MIP.Base as MIP
+import Numeric.Optimization.MIP.FileUtils (ParseError)
 
 type Column = MIP.Var
 type Row = InternedText

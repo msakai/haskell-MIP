@@ -3,7 +3,7 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Internal.ProcessUtil
+-- Module      :  Numeric.Optimization.MIP.Internal.ProcessUtil
 -- Copyright   :  (c) Masahiro Sakai 2014
 -- License     :  BSD-style
 --
@@ -12,7 +12,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Internal.ProcessUtil
+module Numeric.Optimization.MIP.Internal.ProcessUtil
   ( runProcessWithOutputCallback
   ) where
 

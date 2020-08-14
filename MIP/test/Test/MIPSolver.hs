@@ -9,8 +9,8 @@ import Data.Default.Class
 import qualified Data.Map as Map
 import Test.Tasty
 import Test.Tasty.HUnit
-import qualified ToySolver.Data.MIP as MIP
-import ToySolver.Data.MIP.Solver
+import qualified Numeric.Optimization.MIP as MIP
+import Numeric.Optimization.MIP.Solver
 
 -- ------------------------------------------------------------------------
 

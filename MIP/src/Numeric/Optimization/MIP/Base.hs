@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Base
+-- Module      :  Numeric.Optimization.MIP.Base
 -- Copyright   :  (c) Masahiro Sakai 2011-2019
 -- License     :  BSD-style
 --
@@ -14,7 +14,7 @@
 -- Mixed-Integer Programming Problems with some commmonly used extensions
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Base
+module Numeric.Optimization.MIP.Base
   (
   -- * The MIP Problem type
     Problem (..)

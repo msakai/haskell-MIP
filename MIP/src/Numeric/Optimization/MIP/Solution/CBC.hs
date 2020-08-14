@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solution.CBC
+-- Module      :  Numeric.Optimization.MIP.Solution.CBC
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -13,7 +13,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solution.CBC
+module Numeric.Optimization.MIP.Solution.CBC
   ( Solution (..)
   , parse
   , readFile
@@ -32,8 +32,8 @@ import Data.Scientific (Scientific)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
-import ToySolver.Data.MIP (Solution)
-import qualified ToySolver.Data.MIP as MIP
+import Numeric.Optimization.MIP (Solution)
+import qualified Numeric.Optimization.MIP as MIP
 
 parse :: TL.Text -> MIP.Solution Scientific
 parse t =
@@ -65,7 +65,7 @@ parse' (l1:ls) = do
           ("**":_no:var:val:_) -> return $ (intern (TL.toStrict var), read (TL.unpack val)) : vs
           (_no:var:val:_) -> return $ (intern (TL.toStrict var), read (TL.unpack val)) : vs
           [] -> return $ vs
-          _ -> throwError ("ToySolver.Data.MIP.Solution.CBC: invalid line " ++ show t)
+          _ -> throwError ("Numeric.Optimization.MIP.Solution.CBC: invalid line " ++ show t)
   vs <- foldM f [] ls
   return $
     MIP.Solution

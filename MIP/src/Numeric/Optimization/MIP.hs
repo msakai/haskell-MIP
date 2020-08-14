@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP
+-- Module      :  Numeric.Optimization.MIP
 -- Copyright   :  (c) Masahiro Sakai 2011-2014
 -- License     :  BSD-style
 --
@@ -15,8 +15,8 @@
 -- Mixed-Integer Programming Problems with some commmonly used extensions
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP
-  ( module ToySolver.Data.MIP.Base
+module Numeric.Optimization.MIP
+  ( module Numeric.Optimization.MIP.Base
   , readFile
   , readLPFile
   , readMPSFile
@@ -39,10 +39,10 @@ import qualified Data.Text.Lazy.IO as TLIO
 import System.FilePath (takeExtension, splitExtension)
 import System.IO hiding (readFile, writeFile)
 
-import ToySolver.Data.MIP.Base
-import ToySolver.Data.MIP.FileUtils (ParseError)
-import qualified ToySolver.Data.MIP.LPFile as LPFile
-import qualified ToySolver.Data.MIP.MPSFile as MPSFile
+import Numeric.Optimization.MIP.Base
+import Numeric.Optimization.MIP.FileUtils (ParseError)
+import qualified Numeric.Optimization.MIP.LPFile as LPFile
+import qualified Numeric.Optimization.MIP.MPSFile as MPSFile
 
 #ifdef WITH_ZLIB
 import qualified Codec.Compression.GZip as GZip

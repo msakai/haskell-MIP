@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solver.Glpsol
+-- Module      :  Numeric.Optimization.MIP.Solver.Glpsol
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -12,7 +12,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solver.Glpsol
+module Numeric.Optimization.MIP.Solver.Glpsol
   ( Glpsol (..)
   , glpsol
   ) where
@@ -24,11 +24,11 @@ import qualified Data.Text.Lazy.IO as TLIO
 import System.Exit
 import System.IO
 import System.IO.Temp
-import qualified ToySolver.Data.MIP.Base as MIP
-import qualified ToySolver.Data.MIP.LPFile as LPFile
-import ToySolver.Data.MIP.Solver.Base
-import qualified ToySolver.Data.MIP.Solution.GLPK as GLPKSol
-import ToySolver.Internal.ProcessUtil (runProcessWithOutputCallback)
+import qualified Numeric.Optimization.MIP.Base as MIP
+import qualified Numeric.Optimization.MIP.LPFile as LPFile
+import Numeric.Optimization.MIP.Solver.Base
+import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
+import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
 data Glpsol
   = Glpsol

@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solution.GLPK
+-- Module      :  Numeric.Optimization.MIP.Solution.GLPK
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -13,7 +13,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solution.GLPK
+module Numeric.Optimization.MIP.Solution.GLPK
   ( Solution (..)
   , parse
   , readFile
@@ -30,8 +30,8 @@ import Data.Scientific (Scientific)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
-import ToySolver.Data.MIP (Solution)
-import qualified ToySolver.Data.MIP as MIP
+import Numeric.Optimization.MIP (Solution)
+import qualified Numeric.Optimization.MIP as MIP
 
 parse :: TL.Text -> MIP.Solution Scientific
 parse t = parse' $ TL.lines t

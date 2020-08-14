@@ -3,7 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solver.Base
+-- Module      :  Numeric.Optimization.MIP.Solver.Base
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -12,7 +12,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solver.Base
+module Numeric.Optimization.MIP.Solver.Base
   ( SolveOptions (..)
   , Default (..)
   , IsSolver (..)
@@ -20,7 +20,7 @@ module ToySolver.Data.MIP.Solver.Base
 
 import Data.Default.Class
 import Data.Scientific (Scientific)
-import ToySolver.Data.MIP.Base as MIP
+import Numeric.Optimization.MIP.Base as MIP
 
 data SolveOptions
   = SolveOptions

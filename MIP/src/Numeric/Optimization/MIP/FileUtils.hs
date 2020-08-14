@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.FileUtils
+-- Module      :  Numeric.Optimization.MIP.FileUtils
 -- Copyright   :  (c) Masahiro Sakai 2018
 -- License     :  BSD-style
 --
@@ -12,7 +12,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.FileUtils
+module Numeric.Optimization.MIP.FileUtils
   ( ParseError
   ) where
 

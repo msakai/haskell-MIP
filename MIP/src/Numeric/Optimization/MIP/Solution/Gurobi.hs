@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solution.Gurobi
+-- Module      :  Numeric.Optimization.MIP.Solution.Gurobi
 -- Copyright   :  (c) Masahiro Sakai 2012,2017
 -- License     :  BSD-style
 --
@@ -13,7 +13,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solution.Gurobi
+module Numeric.Optimization.MIP.Solution.Gurobi
   ( Solution (..)
   , render
   , writeFile
@@ -37,8 +37,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.Builder.Scientific as B
 import qualified Data.Text.Lazy.IO as TLIO
-import ToySolver.Data.MIP (Solution)
-import qualified ToySolver.Data.MIP as MIP
+import Numeric.Optimization.MIP (Solution)
+import qualified Numeric.Optimization.MIP as MIP
 
 render :: MIP.Solution Scientific -> TL.Text
 render sol = B.toLazyText $ ls1 <> mconcat ls2
@@ -73,7 +73,7 @@ parse t =
           case TL.words (TL.takeWhile (/= '#') l) of
             [w1, w2] -> (obj, (intern (TL.toStrict w1), read (TL.unpack w2)) : vs)
             [] -> (obj, vs)
-            _ -> error ("ToySolver.Data.MIP.Solution.Gurobi: invalid line " ++ show l)
+            _ -> error ("Numeric.Optimization.MIP.Solution.Gurobi: invalid line " ++ show l)
 
 readFile :: FilePath -> IO (MIP.Solution Scientific)
 readFile fname = parse <$> TLIO.readFile fname

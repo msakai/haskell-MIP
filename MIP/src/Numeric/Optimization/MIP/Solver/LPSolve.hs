@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  ToySolver.Data.MIP.Solver.LPSolve
+-- Module      :  Numeric.Optimization.MIP.Solver.LPSolve
 -- Copyright   :  (c) Masahiro Sakai 2017
 -- License     :  BSD-style
 --
@@ -12,7 +12,7 @@
 -- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
-module ToySolver.Data.MIP.Solver.LPSolve
+module Numeric.Optimization.MIP.Solver.LPSolve
   ( LPSolve (..)
   , lpSolve
   ) where
@@ -27,10 +27,10 @@ import qualified Data.Text.Lazy.IO as TLIO
 import System.Exit
 import System.IO
 import System.IO.Temp
-import qualified ToySolver.Data.MIP.Base as MIP
-import qualified ToySolver.Data.MIP.MPSFile as MPSFile
-import ToySolver.Data.MIP.Solver.Base
-import ToySolver.Internal.ProcessUtil (runProcessWithOutputCallback)
+import qualified Numeric.Optimization.MIP.Base as MIP
+import qualified Numeric.Optimization.MIP.MPSFile as MPSFile
+import Numeric.Optimization.MIP.Solver.Base
+import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
 data LPSolve
   = LPSolve
