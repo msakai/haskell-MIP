@@ -1,0 +1,79 @@
+# This is the simple Travis configuration, which is intended for use
+# on applications which do not require cross-platform and
+# multiple-GHC-version support. For more information and other
+# options, see:
+#
+# https://docs.haskellstack.org/en/stable/travis_ci/
+#
+# Copy these contents into the root directory of your Github project in a file
+# named .travis.yml
+
+# Use new container infrastructure to enable caching
+sudo: false
+
+dist: xenial
+
+# Do not choose a language; we provide our own build tools.
+language: generic
+
+addons:
+  apt:
+    packages:
+    - libgmp-dev
+    - coinor-cbc
+    - glpk-utils
+    - lp-solve
+    - c2hs
+
+matrix:
+  include:
+    - env: STACK_YAML=stack-ghc-8.10.yaml
+      compiler: ": #GHC 8.10.1"
+    - env: STACK_YAML=stack-ghc-8.8.yaml HADDOCK=1 COVERAGE=1 SHC_GHCVER=8.0.1
+      compiler: ": #GHC 8.8.3"
+    - env: STACK_YAML=stack-ghc-8.8.yaml
+      compiler: ": #GHC 8.8.3"
+      os: osx
+    - env: STACK_YAML=stack-ghc-8.6.yaml
+      compiler: ": #GHC 8.6.5"
+    - env: STACK_YAML=stack-ghc-8.4.yaml
+      compiler: ": #GHC 8.4.4"
+    - env: STACK_YAML=stack-ghc-8.2.yaml
+      compiler: ": #GHC 8.2.2"
+    - env: STACK_YAML=stack-ghc-8.0.yaml
+      compiler: ": #GHC 8.0.2"
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.stack
+
+before_install:
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- |
+  if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    travis_retry curl -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 -C ~/.local/bin '*/stack'
+  else
+    travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  fi  
+
+install:
+- if [ -n "$COVERAGE" ]; then FLAGS="$FLAGS --coverage"; fi
+- if [ -n "$HADDOCK" ]; then FLAGS="$FLAGS --haddock --no-haddock-deps"; fi
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve"; fi
+
+# Build dependencies
+- stack --jobs 2 --no-terminal --install-ghc build --test --bench --only-dependencies $FLAGS
+
+script:
+# Build the package, its tests, and its docs and run the tests
+- stack --jobs 2 --no-terminal test --bench --no-run-benchmarks $FLAGS
+
+after_script:
+- |
+  if [ -n "$COVERAGE" ]; then
+    travis_retry curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.4.0/shc-linux-x64-$SHC_GHCVER.tar.bz2 | tar -xj
+    ./shc MIP TestSuite
+  fi
