@@ -78,5 +78,5 @@ after_script:
 - |
   if [ -n "$COVERAGE" ]; then
     travis_retry curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.4.0/shc-linux-x64-$SHC_GHCVER.tar.bz2 | tar -xj
-    ./shc MIP TestSuite
+    ./shc MIP MIP-test
   fi
