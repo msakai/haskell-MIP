@@ -94,7 +94,9 @@ library:
         - bytestring-encoding
         - zlib
         cpp-options: "-DWITH_ZLIB"
-      else: {}
+      else:
+        # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
+        cpp-options: " "
 
 tests:
   MIP-test:
