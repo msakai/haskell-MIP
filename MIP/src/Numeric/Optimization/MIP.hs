@@ -16,18 +16,27 @@
 --
 -----------------------------------------------------------------------------
 module Numeric.Optimization.MIP
-  ( module Numeric.Optimization.MIP.Base
+  (
+  -- * The MIP Problem/Solution types
+    module Numeric.Optimization.MIP.Base
+
+  -- * File I/O
+  -- $IO
+
+  -- ** Reading problem files
   , readFile
   , readLPFile
   , readMPSFile
   , parseLPString
   , parseMPSString
+  , ParseError
+
+  -- ** Generating problem files
   , writeFile
   , writeLPFile
   , writeMPSFile
   , toLPString
   , toMPSString
-  , ParseError
   ) where
 
 import Prelude hiding (readFile, writeFile)
@@ -52,7 +61,7 @@ import qualified Data.CaseInsensitive as CI
 import GHC.IO.Encoding (getLocaleEncoding)
 #endif
 
--- | Parse .lp or .mps file based on file extension
+-- | Parse LP or MPS file based on file extension.
 readFile :: FileOptions -> FilePath -> IO (Problem Scientific)
 readFile opt fname =
   case getExt fname of
@@ -112,6 +121,7 @@ parseLPString = LPFile.parseString
 parseMPSString :: FileOptions -> String -> String -> Either (ParseError String) (Problem Scientific)
 parseMPSString = MPSFile.parseString
 
+-- | Generate LP file or MPS file based on file extension.
 writeFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeFile opt fname prob =
   case getExt fname of
@@ -127,12 +137,14 @@ getExt fname | (base, ext) <- splitExtension fname =
 #endif
     s -> s
 
+-- | Generate LP file.
 writeLPFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeLPFile opt fname prob =
   case LPFile.render opt prob of
     Left err -> ioError $ userError err
     Right s -> writeTextFile opt fname s
 
+-- | Generate MPS file.
 writeMPSFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeMPSFile opt fname prob =
   case MPSFile.render opt prob of
@@ -159,8 +171,14 @@ writeTextFile opt fname s = do
   writeSimple
 #endif
 
+-- | Generate a 'TL.Text' containing LP file data.
 toLPString :: FileOptions -> Problem Scientific -> Either String TL.Text
 toLPString = LPFile.render
 
+-- | Generate a 'TL.Text' containing MPS file data.
 toMPSString :: FileOptions -> Problem Scientific -> Either String TL.Text
 toMPSString = MPSFile.render
+
+-- $IO
+-- If this library is built with @WithZlib@ flag (enabled by default), 
+-- reading/writing gzipped file (@.gz@) are also supported.

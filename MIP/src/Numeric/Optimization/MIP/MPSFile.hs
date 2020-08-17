@@ -16,7 +16,7 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
--- A .mps format parser library.
+-- A @.mps@ format parser library.
 --
 -- References:
 --
@@ -104,7 +104,7 @@ type C e s m = (MonadParsec e s m, Token s ~ Char)
 #endif
 
 -- | Parse a string containing MPS file data.
--- The source name is only | used in error messages and may be the empty string.
+-- The source name is only used in error messages and may be the empty string.
 #if MIN_VERSION_megaparsec(6,0,0)
 parseString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
 #else
@@ -617,6 +617,7 @@ writeChar c = tell $ B.singleton c
 
 -- ---------------------------------------------------------------------------
 
+-- | Render a problem into a 'TL.Text' containing MPS file data.
 render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip | not (checkAtMostQuadratic mip) = Left "Expression must be atmost quadratic"
 render _ mip = Right $ execM $ render' $ nameRows mip

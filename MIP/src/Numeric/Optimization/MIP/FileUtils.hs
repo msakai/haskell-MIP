@@ -21,6 +21,9 @@ import Data.Void
 #endif
 import qualified Text.Megaparsec as MP
 
+-- | Error type for parsing.
+--
+-- The definition is slightly different based on the @megaparsec@ version.
 #if MIN_VERSION_megaparsec(7,0,0)
 type ParseError s = MP.ParseErrorBundle s Void
 #elif MIN_VERSION_megaparsec(6,0,0)

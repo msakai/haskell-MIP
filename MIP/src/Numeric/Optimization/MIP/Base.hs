@@ -269,16 +269,19 @@ data Constraint c
   }
   deriving (Eq, Ord, Show)
 
+-- | Equality constraint.
 (.==.) :: Num c => Expr c -> Expr c -> Constraint c
 lhs .==. rhs =
   case splitConst (lhs - rhs) of
     (e, c) -> def{ constrExpr = e, constrLB = Finite (- c), constrUB = Finite (- c) }
 
+-- | Inequality constraint (≤).
 (.<=.) :: Num c => Expr c -> Expr c -> Constraint c
 lhs .<=. rhs =
   case splitConst (lhs - rhs) of
     (e, c) -> def{ constrExpr = e, constrUB = Finite (- c) }
 
+-- | Inequality constraint (≥).
 (.>=.) :: Num c => Expr c -> Expr c -> Constraint c
 lhs .>=. rhs =
   case splitConst (lhs - rhs) of
@@ -356,7 +359,9 @@ instance PartialOrd Status where
         , (StatusInfeasibleOrUnbounded, StatusInfeasible)
         ]
 
-
+-- | /meet/ (greatest lower bound) operator of the partial order of 'Status' type.
+--
+-- If the version of @lattices@ is \<2, then @MeetSemiLattice@ instance can also be used.
 meetStatus :: Status -> Status -> Status
 StatusUnknown `meetStatus` _b = StatusUnknown
 StatusFeasible `meetStatus` b
@@ -387,6 +392,7 @@ instance MeetSemiLattice Status where
 #endif
 
 
+-- | Type for representing a solution of MIP problem.
 data Solution r
   = Solution
   { solStatus :: Status
