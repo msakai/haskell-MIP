@@ -30,6 +30,7 @@ install:
 - stack setup > nul
 - curl -oCOIN-OR-1.8.0-win32-msvc12.zip -L --insecure https://www.coin-or.org/download/binary/OptimizationSuite/COIN-OR-1.8.0-win32-msvc12.zip
 - 7z e COIN-OR-1.8.0-win32-msvc12.zip COIN-OR/win32-msvc12/bin/cbc.exe
+- set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%
 
 build_script:
 - git submodule init
