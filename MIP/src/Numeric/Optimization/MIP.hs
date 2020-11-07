@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.MIP
@@ -43,10 +45,12 @@ import Prelude hiding (readFile, writeFile)
 import Control.Exception
 import Data.Char
 import Data.Scientific (Scientific)
+import Data.String
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
 import System.FilePath (takeExtension, splitExtension)
 import System.IO hiding (readFile, writeFile)
+import Text.Megaparsec (Stream (..))
 
 import Numeric.Optimization.MIP.Base
 import Numeric.Optimization.MIP.FileUtils (ParseError)
@@ -114,11 +118,19 @@ readTextFile opt fname = do
 #endif
 
 -- | Parse a string containing LP file data.
-parseLPString :: FileOptions -> String -> String -> Either (ParseError String) (Problem Scientific)
+#if MIN_VERSION_megaparsec(6,0,0)
+parseLPString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
+#else
+parseLPString :: (Stream s, Token s ~ Char) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
+#endif
 parseLPString = LPFile.parseString
 
 -- | Parse a string containing MPS file data.
-parseMPSString :: FileOptions -> String -> String -> Either (ParseError String) (Problem Scientific)
+#if MIN_VERSION_megaparsec(6,0,0)
+parseMPSString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
+#else
+parseMPSString :: (Stream s, Token s ~ Char) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
+#endif
 parseMPSString = MPSFile.parseString
 
 -- | Generate LP file or MPS file based on file extension.
