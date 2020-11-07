@@ -29,32 +29,32 @@ flags:
     manual: True
 
   TestCBC:
-    description: run test cases that depends on cbc command
+    description: run test cases that depend on cbc command
     manual: True
     default: False
 
   TestCPLEX:
-    description: run test cases that depends on cplex command
+    description: run test cases that depend on cplex command
     manual: True
     default: False
 
   TestGlpsol:
-    description: run test cases that depends on glpsol command
+    description: run test cases that depend on glpsol command
     manual: True
     default: False
 
   TestGurobiCl:
-    description: run test cases that depends on gurobi_cl command
+    description: run test cases that depend on gurobi_cl command
     manual: True
     default: False
 
   TestLPSolve:
-    description: run test cases that depends on lp_solve command
+    description: run test cases that depend on lp_solve command
     manual: True
     default: False
 
   TestSCIP:
-    description: run test cases that depends on scip command
+    description: run test cases that depend on scip command
     manual: True
     default: False
 
