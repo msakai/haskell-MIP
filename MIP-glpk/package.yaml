@@ -1,0 +1,44 @@
+name:                MIP-glpk
+version:             0.1.1.0
+github:              "msakai/haskell-MIP"
+license:             BSD3
+author:              "Masahiro Sakai"
+maintainer:          "masahiro.sakai@gmail.com"
+copyright:           "2020 Masahiro Sakai"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            A GLPK backend to the MIP library.
+category:            Math, Algorithms, Optimisation, Optimization
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/msakai/haskell-MIP/tree/master/MIP#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- scientific
+- extended-reals >=0.1 && <1.0
+- MIP
+- glpk-headers >=0.4.1
+
+library:
+  source-dirs: src
+  extra-libraries: glpk
+
+tests:
+  MIP-glpk-test:
+    main:                TestSuite.hs
+    source-dirs:         test
+    dependencies:
+    - MIP-glpk
+    - data-default-class
+    - tasty >=0.10.1
+    - tasty-hunit >=0.9 && <0.11
+    - tasty-quickcheck >=0.8 && <0.11
+    - tasty-th

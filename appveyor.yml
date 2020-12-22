@@ -35,8 +35,12 @@ install:
 
 - curl -owinglpk-4.65.zip -L --insecure https://jaist.dl.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip
 - 7z x winglpk-4.65.zip
-- if %PLATFORM%==x86 set PATH=%APPVEYOR_BUILD_FOLDER%\glpk-4.65\w32;%PATH%
-- if %PLATFORM%==x64 set PATH=%APPVEYOR_BUILD_FOLDER%\glpk-4.65\w64;%PATH%
+- if %PLATFORM%==x86 set GLPK_PLATFORM=w32
+- if %PLATFORM%==x64 set GLPK_PLATFORM=w64
+- set PATH=%APPVEYOR_BUILD_FOLDER%\glpk-4.65\%GLPK_PLATFORM%;%PATH%
+- set GLPK_LIB_DIR=%APPVEYOR_BUILD_FOLDER%\glpk-4.65\%GLPK_PLATFORM%
+- set GLPK_INCLUDE_DIR=%APPVEYOR_BUILD_FOLDER%\glpk-4.65\src
+- copy glpk-4.65\%GLPK_PLATFORM%\glpk_4_65.lib glpk-4.65\%GLPK_PLATFORM%\glpk.lib
 
 - if %PLATFORM%==x86 (
     curl -olp_solve_5.5.2.5_exe_win32.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win32.zip &&
@@ -54,4 +58,4 @@ build_script:
 test_script:
 # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
 # descriptor
-- echo "" | stack --no-terminal test --bench --no-run-benchmarks --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve
+- echo "" | stack --no-terminal test --bench --no-run-benchmarks --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --extra-include-dirs=%GLPK_INCLUDE_DIR% --extra-lib-dirs=%GLPK_LIB_DIR%

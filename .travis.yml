@@ -11,7 +11,7 @@
 # Use new container infrastructure to enable caching
 sudo: false
 
-dist: xenial
+dist: bionic
 
 # Do not choose a language; we provide our own build tools.
 language: generic
@@ -22,8 +22,13 @@ addons:
     - libgmp-dev
     - coinor-cbc
     - glpk-utils
+    - libglpk-dev
     - lp-solve
     - c2hs
+  homebrew:
+    update: true
+    packages:
+    - glpk
 
 matrix:
   include:
@@ -66,6 +71,7 @@ install:
 - if [ -n "$HADDOCK" ]; then FLAGS="$FLAGS --haddock --no-haddock-deps"; fi
 - if [ -n "$NOZLIB" ]; then FLAGS="$FLAGS --flag MIP:-WithZLIB"; fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve"; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then FLAGS="$FLAGS --flag MIP:TestGlpsol"; fi
 
 # Build dependencies
 - stack --jobs 2 --no-terminal --install-ghc build --test --bench --only-dependencies $FLAGS
