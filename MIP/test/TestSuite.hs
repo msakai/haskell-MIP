@@ -8,7 +8,7 @@ import Test.MIPSolver
 import Test.MPSFile
 
 main :: IO ()
-main = defaultMain $ testGroup "ToySolver test suite"
+main = defaultMain $ testGroup "MIP test suite"
   [ lpTestGroup
   , mipTestGroup
   , mipSolverTestGroup
