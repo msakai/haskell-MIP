@@ -19,9 +19,13 @@ module Numeric.Optimization.MIP.Solver.GLPK
 
 import Control.Exception
 import Control.Monad
+import qualified Data.ByteString as B
+import Data.ByteString.Encoding (encode, localeEncoding)
+import Data.Interned (unintern)
 import qualified Data.Map.Strict as Map
 import Data.Scientific (Scientific, fromFloatDigits, toRealFloat)
 import qualified Data.Set as Set
+import qualified Data.Text as T
 import Foreign
 import Foreign.C
 
@@ -52,10 +56,15 @@ instance IsSolver GLPK IO where
               MIP.Term c [v] -> return (varToCol Map.! v, c)
               MIP.Term _ _ -> error "GLPK does not support non-linear term"
 
+      case MIP.name prob of
+        Nothing -> return ()
+        Just name -> useTextAsCString name (Raw.glp_set_prob_name prob')
+
       -- Variables
       _ <- Raw.glp_add_cols prob' $ fromIntegral $ Map.size $ MIP.varType prob
       forM_ (Map.toList varToCol) $ \(v, col) -> do
         let (lb, ub) = MIP.getBounds prob v
+        useTextAsCString (unintern v) (Raw.glp_set_col_name prob' col)
         Raw.glp_set_col_kind prob' col $
           case MIP.getVarType prob v of
             MIP.SemiContinuousVariable -> error "GLPK does not support semi-continuous variables"
@@ -74,6 +83,9 @@ instance IsSolver GLPK IO where
         case MIP.objDir obj of
           MIP.OptMax -> Raw.glpkMax
           MIP.OptMin -> Raw.glpkMin
+      case MIP.objLabel obj of
+        Nothing -> return ()
+        Just name -> useTextAsCString name (Raw.glp_set_obj_name prob')
       forM_ (Map.toList (exprToMap (MIP.objExpr obj))) $ \(col, c) -> do
         Raw.glp_set_obj_coef prob' col (toRealFloat c)
 
@@ -86,6 +98,9 @@ instance IsSolver GLPK IO where
           Just _ -> error "Indicator constraints are not supported"
         when (MIP.constrIsLazy constr) $ do
           error "GLPK does not support lazy constraints"
+        case MIP.constrLabel constr of
+          Nothing -> return ()
+          Just name -> useTextAsCString name (Raw.glp_set_row_name prob' row)
         case fromBound (MIP.constrLB constr) (MIP.constrUB constr) of
           (constrType, lb', ub') -> Raw.glp_set_row_bnds prob' row constrType lb' ub'
         -- TODO: check constant terms
@@ -155,6 +170,8 @@ fromBound NegInf (Finite ub') = (Raw.glpkLT, 0, toRealFloat ub')
 fromBound _ NegInf = (Raw.glpkBounded, 1, 0)  -- inconsistent
 fromBound PosInf _ = (Raw.glpkBounded, 1, 0)  -- inconsistent
 
+useTextAsCString :: T.Text -> (CString -> IO a) -> IO a
+useTextAsCString s = B.useAsCString (encode localeEncoding s)
 
 termHook :: Ptr () -> CString -> IO CInt
 termHook p s = do

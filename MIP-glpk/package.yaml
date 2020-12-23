@@ -30,6 +30,11 @@ dependencies:
 library:
   source-dirs: src
   extra-libraries: glpk
+  dependencies:
+  - bytestring
+  - bytestring-encoding
+  - intern
+  - text
 
 tests:
   MIP-glpk-test:
