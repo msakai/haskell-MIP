@@ -28,6 +28,7 @@ addons:
   homebrew:
     update: true
     packages:
+    - cbc
     - glpk
 
 matrix:
@@ -72,7 +73,7 @@ install:
 - if [ -n "$HADDOCK" ]; then FLAGS="$FLAGS --haddock --no-haddock-deps"; fi
 - if [ -n "$NOZLIB" ]; then FLAGS="$FLAGS --flag MIP:-WithZLIB"; fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve"; fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ]; then FLAGS="$FLAGS --flag MIP:TestGlpsol"; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol"; fi
 
 # Build dependencies
 - stack --jobs 2 --no-terminal --install-ghc build --test --bench --only-dependencies $FLAGS
