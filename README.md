@@ -6,5 +6,7 @@
 
 This is a repoository for housing the `MIP` and related packages, for using Mixed Integer Programming (MIP) in Haskell.
 
-* [MIP](MIP) ― Library for reading/writing MIP problem files, inocking external MIP solvers, etc.
+* [MIP](MIP) ― Library for reading/writing MIP problem files, invoking external MIP solvers, etc.
 * [MIP-glpk](MIP-glpk) ― GLPK backend for `MIP` package
+
+They are spin-off of [toysolver](https://github.com/msakai/toysolver) project.
