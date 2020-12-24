@@ -17,6 +17,7 @@ module Numeric.Optimization.MIP.Solver.GLPK
   , glpk
   ) where
 
+import Control.Concurrent
 import Control.Exception
 import Control.Monad
 import qualified Data.ByteString as B
@@ -45,8 +46,11 @@ glpk :: GLPK
 glpk = GLPK
 
 instance IsSolver GLPK IO where
-  solve _solver opt prob = do
+  solve _solver opt prob =
+    (if rtsSupportsBoundThreads then runInBoundThread else id) $
+    bracket Raw.glp_init_env (\ret -> when (ret == 0) $ Raw.glp_free_env >> return ()) $ \_ -> do
     bracket Raw.glp_create_prob Raw.glp_delete_prob $ \prob' -> do
+
       let vs = MIP.variables  prob
           varToCol = Map.fromList $ zip (Set.toAscList vs) [1..]
           exprToMap (MIP.Expr ts) = Map.fromListWith (+) $ do
