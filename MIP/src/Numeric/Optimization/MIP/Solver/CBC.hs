@@ -41,7 +41,7 @@ cbc = CBC "cbc"
 
 instance IsSolver CBC IO where
   solve solver opt prob = do
-    case LPFile.render def prob of
+    case LPFile.render def prob{ MIP.objectiveFunction = obj' } of
       Left err -> ioError $ userError err
       Right lp -> do
         withSystemTempFile "cbc.lp" $ \fname1 h1 -> do
@@ -61,7 +61,11 @@ instance IsSolver CBC IO where
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do
                 sol <- CBCSol.readFile fname2
-                if MIP.objDir (MIP.objectiveFunction prob) == MIP.OptMax then
+                if isMax then
                   return $ sol{ MIP.solObjectiveValue = fmap negate (MIP.solObjectiveValue sol) }
                 else
                   return sol
+    where
+      obj = MIP.objectiveFunction prob
+      isMax = MIP.objDir obj == MIP.OptMax
+      obj' = if isMax then obj{ MIP.objDir = MIP.OptMin, MIP.objExpr = - MIP.objExpr obj } else obj
