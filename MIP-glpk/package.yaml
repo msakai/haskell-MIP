@@ -17,14 +17,14 @@ category:            Math, Algorithms, Optimisation, Optimization
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/msakai/haskell-MIP/tree/master/MIP#readme>
+description:         Please see the README on GitHub at <https://github.com/msakai/haskell-MIP/tree/master/MIP-glpk#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 - containers
 - scientific
 - extended-reals >=0.1 && <1.0
-- MIP
+- MIP >=0.1.1.0 && <0.2
 - glpk-headers >=0.4.1
 
 library:
