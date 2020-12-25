@@ -4,11 +4,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Main where
 
+import Control.Concurrent
+import Control.Concurrent.Async
 import Control.Monad
 import Data.Default.Class
 import qualified Data.Map as Map
 import Test.Tasty
 import Test.Tasty.HUnit
+
+import qualified Math.Programming.Glpk.Header as Raw
 import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver
 import Numeric.Optimization.MIP.Solver.GLPK
@@ -45,9 +49,25 @@ case_glpk_infeasible = do
 
 -- ------------------------------------------------------------------------
 
+case_glpk_thread_safe :: Assertion
+case_glpk_thread_safe = when rtsSupportsBoundThreads $ do
+  t <- asyncBound $ do
+    ret <- Raw.glp_init_env
+    ret @?= 0
+    th2 <- asyncBound $ do
+      ret <- Raw.glp_init_env
+      ret @?= 0
+      void $ Raw.glp_free_env
+    wait th2
+    void $ Raw.glp_free_env
+  wait t
+
+-- ------------------------------------------------------------------------
+
 main :: IO ()
 main = defaultMain $ testGroup "MIP-glpk test suite"
   [ testCase "glpk" case_glpk
   , testCase "glpk unbounded" case_glpk_unbounded
   , testCase "glpk infeasible" case_glpk_infeasible
+  , testCase "glpk thread safe" case_glpk_thread_safe
   ]
