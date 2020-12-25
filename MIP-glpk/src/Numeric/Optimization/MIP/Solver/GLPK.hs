@@ -121,8 +121,8 @@ instance IsSolver GLPK IO where
       when (length (MIP.userCuts prob) > 0) $ do
         error "GLPK does not support user cuts"
 
-      let loggingCallback :: CString -> IO Int
-          loggingCallback p = do
+      let loggingCallback :: Ptr () -> CString -> IO CInt
+          loggingCallback _ p = do
             s <- peekCString p
             solveLogger opt s
             return 1
@@ -141,8 +141,8 @@ instance IsSolver GLPK IO where
           }
 
         status <-
-          bracket (newStablePtr loggingCallback) freeStablePtr $ \loggingCallbackPtr ->
-            bracket_ (Raw.glp_term_hook termHookFunPtr (castStablePtrToPtr loggingCallbackPtr)) (Raw.glp_term_hook nullFunPtr nullPtr) $
+          bracket (wrapTermHook loggingCallback) freeHaskellFunPtr $ \loggingCallbackPtr -> do
+            bracket_ (Raw.glp_term_hook loggingCallbackPtr nullPtr) (Raw.glp_term_hook nullFunPtr nullPtr) $
               Raw.glp_intopt prob' p
 
         objVal <- liftM fromFloatDigits $ Raw.glp_mip_obj_val prob'
@@ -177,15 +177,5 @@ fromBound PosInf _ = (Raw.glpkBounded, 1, 0)  -- inconsistent
 useTextAsCString :: T.Text -> (CString -> IO a) -> IO a
 useTextAsCString s = B.useAsCString (encode localeEncoding s)
 
-termHook :: Ptr () -> CString -> IO CInt
-termHook p s = do
-  let sp :: StablePtr (CString -> IO Int)
-      sp = castPtrToStablePtr p
-  callback <- deRefStablePtr sp
-  liftM fromIntegral $ callback s
-
-foreign export ccall "haskell_mip_glpk_term_hook"
-  termHook :: Ptr () -> CString -> IO CInt
-
-foreign import ccall "&haskell_mip_glpk_term_hook"
-  termHookFunPtr :: FunPtr (Ptr () -> CString -> IO CInt)
+foreign import ccall "wrapper"
+  wrapTermHook :: (Ptr a -> CString -> IO CInt) -> IO (FunPtr (Ptr a -> CString -> IO CInt))
