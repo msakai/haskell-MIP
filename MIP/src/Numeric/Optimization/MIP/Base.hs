@@ -77,6 +77,7 @@ module Numeric.Optimization.MIP.Base
   , FileOptions (..)
 
   -- * Utilities
+  , Default (..)
   , Variables (..)
   , intersectBounds
   ) where

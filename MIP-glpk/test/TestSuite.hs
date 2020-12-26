@@ -7,7 +7,6 @@ module Main where
 import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Monad
-import Data.Default.Class
 import qualified Data.Map as Map
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -21,8 +20,8 @@ import Numeric.Optimization.MIP.Solver.GLPK
 
 case_glpk :: Assertion
 case_glpk = do
-  prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve glpk def prob
+  prob <- MIP.readFile MIP.def "samples/lp/test.lp"
+  sol <- solve glpk MIP.def prob
   sol @?=
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -32,8 +31,8 @@ case_glpk = do
 
 case_glpk_unbounded :: Assertion
 case_glpk_unbounded = do
-  prob <- MIP.readFile def "samples/lp/unbounded-ip.lp"
-  sol <- solve glpk def prob
+  prob <- MIP.readFile MIP.def "samples/lp/unbounded-ip.lp"
+  sol <- solve glpk MIP.def prob
   let status = MIP.solStatus sol
   unless (status == MIP.StatusUnbounded || status == MIP.StatusFeasible || status == MIP.StatusInfeasibleOrUnbounded) $
     assertFailure $ unlines $
@@ -43,8 +42,8 @@ case_glpk_unbounded = do
 
 case_glpk_infeasible :: Assertion
 case_glpk_infeasible = do
-  prob <- MIP.readFile def "samples/lp/infeasible.lp"
-  sol <- solve glpk def prob
+  prob <- MIP.readFile MIP.def "samples/lp/infeasible.lp"
+  sol <- solve glpk MIP.def prob
   MIP.solStatus sol @?= MIP.StatusInfeasible
 
 -- ------------------------------------------------------------------------
