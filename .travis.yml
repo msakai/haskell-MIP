@@ -64,16 +64,16 @@ before_install:
 - |
   if [ "$TRAVIS_OS_NAME" = "osx" ]; then
     travis_retry curl -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 -C ~/.local/bin '*/stack'
+    travis_retry curl -L https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_osx32.tar.gz | tar xz -C ~/.local/bin
   else
     travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-  fi  
+  fi
 
 install:
 - if [ -n "$COVERAGE" ]; then FLAGS="$FLAGS --coverage"; fi
 - if [ -n "$HADDOCK" ]; then FLAGS="$FLAGS --haddock --no-haddock-deps"; fi
 - if [ -n "$NOZLIB" ]; then FLAGS="$FLAGS --flag MIP:-WithZLIB"; fi
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve"; fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ]; then FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol"; fi
+- FLAGS="$FLAGS --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve"
 
 # Build dependencies
 - stack --jobs 2 --no-terminal --install-ghc build --test --bench --only-dependencies $FLAGS
