@@ -1,7 +1,7 @@
 name:                MIP-glpk
 version:             0.1.1.0
 github:              "msakai/haskell-MIP"
-license:             GPL-3.0-or-later
+# license:             GPL-3.0-or-later
 license-file:        COPYING
 author:              "Masahiro Sakai"
 maintainer:          "masahiro.sakai@gmail.com"
