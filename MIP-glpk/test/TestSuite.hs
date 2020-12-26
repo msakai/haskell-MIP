@@ -1,4 +1,4 @@
--- {-# OPTIONS_GHC -Wall -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -Wall -Wno-unused-top-binds #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -50,16 +50,19 @@ case_glpk_infeasible = do
 
 case_glpk_thread_safe :: Assertion
 case_glpk_thread_safe = when rtsSupportsBoundThreads $ do
-  t <- asyncBound $ do
-    ret <- Raw.glp_init_env
-    ret @?= 0
+  th1 <- asyncBound $ do
+    Raw.glp_init_env >>= (@?= 0)
+    Raw.glp_init_env >>= (@?= 1)
     th2 <- asyncBound $ do
-      ret <- Raw.glp_init_env
-      ret @?= 0
-      void $ Raw.glp_free_env
+      Raw.glp_init_env >>= (@?= 0)
+      Raw.glp_init_env >>= (@?= 1)
+      _ <- Raw.glp_free_env
+      Raw.glp_init_env >>= (@?= 0)
     wait th2
-    void $ Raw.glp_free_env
-  wait t
+    Raw.glp_init_env >>= (@?= 1)
+    _ <- Raw.glp_free_env
+    Raw.glp_init_env >>= (@?= 0)
+  wait th1
 
 -- ------------------------------------------------------------------------
 
