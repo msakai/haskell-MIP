@@ -2,6 +2,12 @@
 
 ## Unreleased changes
 
+## 0.1.1.0
+
+* re-export `Default` class from `Numeric.Optimization.MIP`.
+* fix to work with recent version of CBC
+* generalize type of `parseLPString` and `parseMPSString`
+
 ## 0.1.0.0
 
 * Separated from toysolver package
