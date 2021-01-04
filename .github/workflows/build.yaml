@@ -1,0 +1,53 @@
+on: [push, pull_request]
+name: build
+jobs:
+  haskell-MIP:
+    name: haskell-MIP
+    runs-on: ${{ matrix.os }}
+    env:
+      STACK_YAML: ${{ matrix.stack_yaml }}
+    strategy:
+      matrix:
+        ghc: ['8.8.4']
+        os: [ubuntu-latest]
+        include:
+          - ghc: '8.8.4'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-8.8.yaml'
+            coverage: true
+            flags: '--coverage --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-haskell@v1.1.4
+        name: Setup Haskell
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          enable-stack: true
+          stack-version: 'latest'
+          stack-no-global: true
+          stack-setup-ghc: true
+
+      - name: Install APT packages
+        run: sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+
+      - uses: actions/cache@v1
+        name: Cache ~/.stack
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ matrix.ghc }}-stack
+
+      - name: Build
+        run: stack build --test --no-run-tests --bench --no-run-benchmarks ${{ matrix.flags }}
+
+      - name: Test
+        run: stack test ${{ matrix.flags }}
+
+      - name: HPC Coveralls
+        if: ${{ matrix.coverage }}
+        continue-on-error: true
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: |
+          curl -L https://github.com/lehins/stack-hpc-coveralls/releases/download/v0.0.6.0/shc.tar.gz | tar -xz
+          ./shc --repo-token="$COVERALLS_REPO_TOKEN" combined all
