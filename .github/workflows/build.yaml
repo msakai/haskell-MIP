@@ -9,13 +9,18 @@ jobs:
     strategy:
       matrix:
         ghc: ['8.8.4']
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         include:
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             coverage: true
             flags: '--coverage --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+          - ghc: '8.8.4'
+            os: macos-latest
+            stack_yaml: 'stack-ghc-8.8.yaml'
+            coverage: false
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
     steps:
       - uses: actions/checkout@v2
 
@@ -28,8 +33,17 @@ jobs:
           stack-no-global: true
           stack-setup-ghc: true
 
-      - name: Install APT packages
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+
+      - name: Install packages (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cbc glpk
+          curl -L https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz | tar xz
+          (cd lp_solve_5.5/lp_solve && sh ccc.osx)
+          echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
 
       - uses: actions/cache@v1
         name: Cache ~/.stack
