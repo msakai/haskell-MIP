@@ -14,12 +14,12 @@ jobs:
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
-            coverage: true
+            coveralls: true
             flags: '--coverage --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
           - ghc: '8.8.4'
             os: macos-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
-            coverage: false
+            coveralls: false
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
     steps:
       - uses: actions/checkout@v2
@@ -58,7 +58,7 @@ jobs:
         run: stack test ${{ matrix.flags }}
 
       - name: HPC Coveralls
-        if: ${{ matrix.coverage }}
+        if: ${{ matrix.coveralls }}
         continue-on-error: true
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
