@@ -8,8 +8,6 @@ jobs:
       STACK_YAML: ${{ matrix.stack_yaml }}
     strategy:
       matrix:
-        ghc: ['8.8.4']
-        os: [ubuntu-latest, macos-latest]
         include:
           - ghc: '8.8.4'
             os: ubuntu-latest
