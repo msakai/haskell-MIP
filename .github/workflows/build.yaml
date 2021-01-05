@@ -15,6 +15,11 @@ jobs:
             coveralls: true
             flags: '--coverage --haddock --no-haddock-deps --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
           - ghc: '8.8.4'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-8.8.yaml'
+            coveralls: false
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:-WithZLIB'
+          - ghc: '8.8.4'
             os: macos-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             coveralls: false
