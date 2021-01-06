@@ -24,6 +24,20 @@ jobs:
             stack_yaml: 'stack-ghc-8.8.yaml'
             coveralls: false
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+          - ghc: '8.8.4'
+            os: windows-latest
+            stack_yaml: 'stack-ghc-8.8.yaml'
+            coveralls: false
+            flags: '--arch x86_64 --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags_test: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            windows_32_or_64: '64'
+          - ghc: '8.6.3'
+            os: windows-latest
+            stack_yaml: 'stack-windows-i386.yaml'
+            coveralls: false
+            flags: '--arch i386 --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags_test: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            windows_32_or_64: '32'
     steps:
       - uses: actions/checkout@v2
 
@@ -48,6 +62,25 @@ jobs:
           (cd lp_solve_5.5/lp_solve && sh ccc.osx)
           echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
 
+      - name: Install packages (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo $GITHUB_WORKSPACE >> $GITHUB_PATH
+
+          curl -oCOIN-OR-1.8.0-win32-msvc12.zip -L --insecure https://www.coin-or.org/download/binary/OptimizationSuite/COIN-OR-1.8.0-win32-msvc12.zip
+          7z e COIN-OR-1.8.0-win32-msvc12.zip COIN-OR/win32-msvc12/bin/cbc.exe
+
+          curl -owinglpk-4.65.zip -L --insecure https://jaist.dl.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip
+          7z x winglpk-4.65.zip
+          cp glpk-4.65/w${{ matrix.windows_32_or_64 }}/glpk_4_65.lib glpk-4.65/w${{ matrix.windows_32_or_64 }}/glpk.lib
+          echo ${GITHUB_WORKSPACE}\\glpk-4.65\\w${{ matrix.windows_32_or_64 }} >> $GITHUB_PATH
+          echo GLPK_LIB_DIR=${GITHUB_WORKSPACE}\\glpk-4.65\\w${{ matrix.windows_32_or_64 }} >> $GITHUB_ENV
+          echo GLPK_INCLUDE_DIR=${GITHUB_WORKSPACE}\\glpk-4.65\\src >> $GITHUB_ENV
+
+          curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
+          7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
+
       - uses: actions/cache@v1
         name: Cache ~/.stack
         with:
@@ -61,10 +94,12 @@ jobs:
         run: rm -r ~/.stack/setup-exe-cache
 
       - name: Build
-        run: stack build --test --no-run-tests --bench --no-run-benchmarks ${{ matrix.flags }}
+        shell: bash
+        run: stack build --test --no-run-tests --bench --no-run-benchmarks ${{ matrix.flags }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
 
       - name: Test
-        run: stack test ${{ matrix.flags }}
+        shell: bash
+        run: stack test ${{ matrix.flags }} ${{ matrix.flags_test }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
 
       - name: HPC Coveralls
         if: ${{ matrix.coveralls }}
