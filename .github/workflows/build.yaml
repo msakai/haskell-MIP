@@ -12,31 +12,39 @@ jobs:
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_args: '--coverage --haddock --no-haddock-deps'
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: true
-            flags: '--coverage --haddock --no-haddock-deps --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
-            coveralls: false
+            stack_args: ''
+            stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:-WithZLIB'
+            coveralls: false
           - ghc: '8.8.4'
             os: macos-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
-            coveralls: false
+            stack_args: ''
+            stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            coveralls: false
           - ghc: '8.8.4'
             os: windows-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_args: '--arch x86_64'
+            stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
-            flags: '--arch x86_64 --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
-            flags_test: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
             windows_32_or_64: '64'
           - ghc: '8.6.3'
             os: windows-latest
             stack_yaml: 'stack-windows-i386.yaml'
+            stack_args: '--arch i386'
+            stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
-            flags: '--arch i386 --flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
-            flags_test: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
             windows_32_or_64: '32'
     steps:
       - uses: actions/checkout@v2
@@ -95,14 +103,14 @@ jobs:
 
       - name: Build
         shell: bash
-        run: stack build --test --no-run-tests --bench --no-run-benchmarks ${{ matrix.flags }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
+        run: stack build --test --no-run-tests --bench --no-run-benchmarks ${{ matrix.stack_args }} ${{ matrix.flags }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
 
       - name: Test
         shell: bash
-        run: stack test ${{ matrix.flags }} ${{ matrix.flags_test }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
+        run: stack test ${{ matrix.stack_args }} ${{ matrix.stack_test_args }} ${{ matrix.flags }} --extra-include-dirs=$GLPK_INCLUDE_DIR --extra-lib-dirs=$GLPK_LIB_DIR
 
-      - name: HPC Coveralls
-        if: ${{ matrix.coveralls }}
+      - name: Coveralls
+        if: matrix.coveralls
         continue-on-error: true
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
