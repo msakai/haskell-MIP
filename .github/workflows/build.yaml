@@ -38,6 +38,7 @@ jobs:
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
             windows_32_or_64: '64'
+            MINGW_PACKAGE_PREFIX: ''
           - ghc: '8.6.3'
             os: windows-latest
             stack_yaml: 'stack-windows-i386.yaml'
@@ -46,6 +47,25 @@ jobs:
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
             windows_32_or_64: '32'
+            MINGW_PACKAGE_PREFIX: ''
+          - ghc: '8.8.4'
+            os: windows-latest
+            stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_args: '--arch x86_64'
+            stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            coveralls: false
+            windows_32_or_64: '64'
+            MINGW_PACKAGE_PREFIX: 'mingw-w64-x86_64'
+          - ghc: '8.6.3'
+            os: windows-latest
+            stack_yaml: 'stack-windows-i386.yaml'
+            stack_args: '--arch i386'
+            stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            coveralls: false
+            windows_32_or_64: '32'
+            MINGW_PACKAGE_PREFIX: 'mingw-w64-i686'
     steps:
       - uses: actions/checkout@v2
 
@@ -71,7 +91,7 @@ jobs:
           echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
 
       - name: Install packages (Windows)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''
         shell: bash
         run: |
           echo $GITHUB_WORKSPACE >> $GITHUB_PATH
@@ -88,6 +108,11 @@ jobs:
 
           curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
           7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
+
+      - name: Install packages (MINGW)
+        if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX != ''
+        shell: bash
+        run: stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
 
       - uses: actions/cache@v1
         name: Cache ~/.stack
