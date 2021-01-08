@@ -133,8 +133,8 @@ case_gurobiCl = do
   sol @?=
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
-    , MIP.solObjectiveValue = Just 122.50000000000006
-    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.500000000000018), ("x4", 3)]
+    , MIP.solObjectiveValue = Just 122.5
+    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
     }
 
 case_gurobiCl_unbounded :: Assertion
