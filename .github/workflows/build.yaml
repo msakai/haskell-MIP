@@ -14,28 +14,28 @@ jobs:
             stack_yaml: 'stack-ghc-8.8.yaml'
             stack_args: '--coverage --haddock --no-haddock-deps'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
             coveralls: true
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:-WithZLIB'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:-WithZLIB'
             coveralls: false
           - ghc: '8.8.4'
             os: macos-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
             coveralls: false
           - ghc: '8.8.4'
             os: windows-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
             coveralls: false
             windows_32_or_64: '64'
             MINGW_PACKAGE_PREFIX: ''
@@ -44,7 +44,7 @@ jobs:
             stack_yaml: 'stack-windows-i386.yaml'
             stack_args: '--arch i386'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
             coveralls: false
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: ''
@@ -81,10 +81,10 @@ jobs:
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
         with: 
-          conda-channels: 'http://conda.anaconda.org/gurobi'
+          conda-channels: gurobi, ibmdecisionoptimization
 
-      - name: Install Gurobi
-        run: conda install gurobi
+      - name: Install packages (Conda)
+        run: conda install gurobi cplex
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
