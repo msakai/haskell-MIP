@@ -82,6 +82,7 @@ jobs:
         name: Setup Conda
         with: 
           conda-channels: gurobi, ibmdecisionoptimization
+          python-version: 3.7  # CPLEX does not support Python 3.8 yet
 
       - name: Install packages (Conda)
         run: conda install gurobi cplex
