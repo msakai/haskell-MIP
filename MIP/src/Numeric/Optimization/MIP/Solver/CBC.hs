@@ -31,13 +31,14 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data CBC
   = CBC
   { cbcPath :: String
+  , cbcArgs :: [String]
   }
 
 instance Default CBC where
   def = cbc
 
 cbc :: CBC
-cbc = CBC "cbc"
+cbc = CBC "cbc" []
 
 instance IsSolver CBC IO where
   solve solver opt prob = do
@@ -49,7 +50,8 @@ instance IsSolver CBC IO where
           hClose h1
           withSystemTempFile "cbc.sol" $ \fname2 h2 -> do
             hClose h2
-            let args = [fname1]
+            let args = cbcArgs solver
+                    ++ [fname1]
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["sec", show sec])
