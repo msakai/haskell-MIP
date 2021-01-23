@@ -14,8 +14,9 @@ jobs:
             stack_yaml: 'stack-ghc-8.8.yaml'
             stack_args: '--coverage --haddock --no-haddock-deps'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestSCIP'
             coveralls: true
+            scip_docker: true
           - ghc: '8.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
@@ -121,6 +122,12 @@ jobs:
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX != ''
         shell: bash
         run: stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
+
+      - name: Setup SCIP Docker image
+        if: matrix.scip_docker
+        run: |
+          docker image pull scipoptsuite/scipoptsuite:7.0.2
+          echo "${GITHUB_WORKSPACE}/misc/scip_docker_wrapper" >> $GITHUB_PATH
 
       - uses: actions/cache@v1
         name: Cache ~/.stack
