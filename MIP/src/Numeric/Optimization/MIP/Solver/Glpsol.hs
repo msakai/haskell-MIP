@@ -33,13 +33,14 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data Glpsol
   = Glpsol
   { glpsolPath :: String
+  , glpsolArgs :: [String]
   }
 
 instance Default Glpsol where
   def = glpsol
 
 glpsol :: Glpsol
-glpsol = Glpsol "glpsol"
+glpsol = Glpsol "glpsol" []
 
 instance IsSolver Glpsol IO where
   solve solver opt prob = do
@@ -53,7 +54,8 @@ instance IsSolver Glpsol IO where
             hClose h2
             isUnboundedRef <- newIORef False
             isInfeasibleRef <- newIORef False
-            let args = ["--lp", fname1, "-o", fname2] ++
+            let args = glpsolArgs solver ++
+                       ["--lp", fname1, "-o", fname2] ++
                        (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["--tmlim", show (max 1 (floor sec) :: Int)])

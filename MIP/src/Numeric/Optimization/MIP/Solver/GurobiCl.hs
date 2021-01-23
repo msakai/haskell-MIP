@@ -33,13 +33,14 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data GurobiCl
   = GurobiCl
   { gurobiClPath :: String
+  , gurobiClArgs :: [String]
   }
 
 instance Default GurobiCl where
   def = gurobiCl
 
 gurobiCl :: GurobiCl
-gurobiCl = GurobiCl "gurobi_cl"
+gurobiCl = GurobiCl "gurobi_cl" []
 
 instance IsSolver GurobiCl IO where
   solve solver opt prob = do
@@ -52,7 +53,8 @@ instance IsSolver GurobiCl IO where
           withSystemTempFile "gurobi.sol" $ \fname2 h2 -> do
             hClose h2
             statusRef <- newIORef MIP.StatusUnknown
-            let args = ["ResultFile=" ++ fname2]
+            let args = gurobiClArgs solver
+                    ++ ["ResultFile=" ++ fname2]
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["TimeLimit=" ++ show sec])

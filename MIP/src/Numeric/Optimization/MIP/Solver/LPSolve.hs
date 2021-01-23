@@ -35,13 +35,14 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data LPSolve
   = LPSolve
   { lpSolvePath :: String
+  , lpSolveArgs :: [String]
   }
 
 instance Default LPSolve where
   def = lpSolve
 
 lpSolve :: LPSolve
-lpSolve = LPSolve "lp_solve"
+lpSolve = LPSolve "lp_solve" []
 
 instance IsSolver LPSolve IO where
   solve solver opt prob = do
@@ -54,7 +55,8 @@ instance IsSolver LPSolve IO where
           objRef <- newIORef Nothing
           solRef <- newIORef []
           flagRef <- newIORef False
-          let args = (case solveTimeLimit opt of
+          let args = lpSolveArgs solver
+                  ++ (case solveTimeLimit opt of
                         Nothing -> []
                         Just sec -> ["-timeout", show sec])
                   ++ ["-fmps", fname1]

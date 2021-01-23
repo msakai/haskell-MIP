@@ -33,13 +33,15 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data CPLEX
   = CPLEX
   { cplexPath :: String
+  , cplexArgs :: [String]                 
+  , cplexCommands :: [String]
   }
 
 instance Default CPLEX where
   def = cplex
 
 cplex :: CPLEX
-cplex = CPLEX "cplex"
+cplex = CPLEX "cplex" [] []
 
 instance IsSolver CPLEX IO where
   solve solver opt prob = do
@@ -52,13 +54,13 @@ instance IsSolver CPLEX IO where
           withSystemTempFile "cplex.sol" $ \fname2 h2 -> do
             hClose h2
             isInfeasibleRef <- newIORef False
-            let args = []
-                input = unlines $
+            let input = unlines $
                   (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["set timelimit ", show sec]) ++
-                  [ "read " ++ show fname1
-                  , "optimize"
+                  [ "read " ++ show fname1 ] ++
+                  cplexCommands solver ++
+                  [ "optimize"
                   , "write " ++ show fname2
                   , "y"
                   , "quit"
@@ -68,7 +70,7 @@ instance IsSolver CPLEX IO where
                     writeIORef isInfeasibleRef True
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (cplexPath solver) args input onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (cplexPath solver) (cplexArgs solver) input onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do
