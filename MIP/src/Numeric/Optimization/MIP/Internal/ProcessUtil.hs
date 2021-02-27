@@ -45,6 +45,9 @@ runProcessWithOutputCallback cmd args input putMsg putErr = do
     , std_out = CreatePipe
     , std_err = CreatePipe
     }
+  hSetBuffering outh LineBuffering
+  hSetBuffering errh LineBuffering
+
   req <- newEmptyTMVarIO
   let f act = atomically (putTMVar req act)
       m1 = forever (hGetLine outh >>= \s -> f (putMsg s))
@@ -59,8 +62,6 @@ runProcessWithOutputCallback cmd args input putMsg putErr = do
       -- hClose performs implicit hFlush, and thus may trigger a SIGPIPE
       ignoreSigPipe $ hClose inh
 
-      hSetBuffering outh LineBuffering
-      hSetBuffering errh LineBuffering
       let loop = join $ atomically $ msum $
             [ do act <- takeTMVar req
                  return $ act >> loop
