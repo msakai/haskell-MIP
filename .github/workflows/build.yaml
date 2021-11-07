@@ -90,6 +90,7 @@ jobs:
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
         with: 
+          python-version: 3.8
           conda-channels: 'http://conda.anaconda.org/gurobi'
 
       - name: Install Gurobi
