@@ -11,6 +11,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver
+import IsClose
 
 -- ------------------------------------------------------------------------
 
@@ -18,7 +19,7 @@ case_cbc :: Assertion
 case_cbc = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve cbc def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -59,7 +60,7 @@ case_cplex :: Assertion
 case_cplex = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve cplex def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -100,7 +101,7 @@ case_glpsol :: Assertion
 case_glpsol = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve glpsol def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -130,7 +131,7 @@ case_gurobiCl :: Assertion
 case_gurobiCl = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve gurobiCl def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -171,7 +172,7 @@ case_lpSolve :: Assertion
 case_lpSolve = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve lpSolve def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -212,7 +213,7 @@ case_scip :: Assertion
 case_scip = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve scip def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
