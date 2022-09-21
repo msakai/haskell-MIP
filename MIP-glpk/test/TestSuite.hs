@@ -16,13 +16,15 @@ import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver
 import Numeric.Optimization.MIP.Solver.GLPK
 
+import IsClose
+
 -- ------------------------------------------------------------------------
 
 case_glpk :: Assertion
 case_glpk = do
   prob <- MIP.readFile MIP.def "samples/lp/test.lp"
   sol <- solve glpk MIP.def prob
-  sol @?=
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
