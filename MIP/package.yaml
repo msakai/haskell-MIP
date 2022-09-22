@@ -77,7 +77,7 @@ library:
   - filepath
   - intern >=0.9.1.2 && <1.0.0.0
   - megaparsec >=5 && <10
-  - mtl >=2.1.2
+  - mtl >=2.1.2 && <2.4
   - OptDir
   - process >=1.1.0.2
   - scientific

@@ -24,6 +24,7 @@ import Prelude hiding (readFile, writeFile)
 import Control.Applicative
 #endif
 
+import Control.Monad (foldM)
 import Control.Monad.Except
 import Data.Interned (intern)
 import Data.Map (Map)
