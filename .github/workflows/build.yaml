@@ -138,6 +138,7 @@ jobs:
           # stack exec ${{ matrix.stack_args }} -- bash -c "pacman-key --verify msys2-keyring-1~20220623-1-any.pkg.tar.zst.sig"
           echo > tmp.txt
           stack exec ${{ matrix.stack_args }} -- bash -c "pacman -U --noconfirm --config tmp.txt msys2-keyring-1~20220623-1-any.pkg.tar.zst"
+          stack exec ${{ matrix.stack_args }} -- pacman -Sy --noconfirm
           stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
 
       - name: Setup SCIP Docker image
