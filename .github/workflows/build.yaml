@@ -135,6 +135,7 @@ jobs:
         run: |
           curl -O https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20220623-1-any.pkg.tar.zst
           curl -O https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20220623-1-any.pkg.tar.zst.sig
+          stack exec ${{ matrix.stack_args }} -- bash -c "echo '[core]' >> /etc/pacman.conf && echo 'SigLevel = TrustAll' >> /etc/pacman.conf"
           # stack exec ${{ matrix.stack_args }} -- bash -c "pacman-key --verify msys2-keyring-1~20220623-1-any.pkg.tar.zst.sig"
           echo > tmp.txt
           stack exec ${{ matrix.stack_args }} -- bash -c "pacman -U --noconfirm --config tmp.txt msys2-keyring-1~20220623-1-any.pkg.tar.zst"
