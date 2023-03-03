@@ -43,7 +43,7 @@ gurobiCl :: GurobiCl
 gurobiCl = GurobiCl "gurobi_cl" []
 
 instance IsSolver GurobiCl IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do

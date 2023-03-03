@@ -20,7 +20,7 @@ module Numeric.Optimization.MIP.Solver
   , module Numeric.Optimization.MIP.Solver.SCIP
   ) where
 
-import Numeric.Optimization.MIP.Solver.Base
+import Numeric.Optimization.MIP.Solver.Base hiding (solve')
 import Numeric.Optimization.MIP.Solver.CBC
 import Numeric.Optimization.MIP.Solver.CPLEX
 import Numeric.Optimization.MIP.Solver.Glpsol

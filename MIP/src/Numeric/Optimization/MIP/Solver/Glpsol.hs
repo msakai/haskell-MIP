@@ -43,7 +43,7 @@ glpsol :: Glpsol
 glpsol = Glpsol "glpsol" []
 
 instance IsSolver Glpsol IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do

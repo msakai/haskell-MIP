@@ -41,7 +41,7 @@ scip :: SCIP
 scip = SCIP "scip" [] []
 
 instance IsSolver SCIP IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do

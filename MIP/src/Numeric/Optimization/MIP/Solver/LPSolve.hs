@@ -45,7 +45,7 @@ lpSolve :: LPSolve
 lpSolve = LPSolve "lp_solve" []
 
 instance IsSolver LPSolve IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case MPSFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do

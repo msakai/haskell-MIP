@@ -41,7 +41,7 @@ cbc :: CBC
 cbc = CBC "cbc" []
 
 instance IsSolver CBC IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob{ MIP.objectiveFunction = obj' } of
       Left err -> ioError $ userError err
       Right lp -> do

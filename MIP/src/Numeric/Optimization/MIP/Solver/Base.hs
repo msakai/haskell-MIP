@@ -21,6 +21,7 @@ module Numeric.Optimization.MIP.Solver.Base
 import Data.Default.Class
 import Data.Scientific (Scientific)
 import Numeric.Optimization.MIP.Base as MIP
+import qualified Data.Map as Map
 
 data SolveOptions
   = SolveOptions
@@ -40,5 +41,17 @@ instance Default SolveOptions where
     , solveErrorLogger = const $ return ()
     }
 
+
 class Monad m => IsSolver s m | s -> m where
-  solve :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
+  solve' :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
+  solve  :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
+  solve s opts problem = addZeroes problem <$> solve' s opts problem
+  {-# MINIMAL solve' #-}
+
+-- Several solvers (at least CBC) do not include any variables set to 0 in their solution.
+-- TODO: for solvers that do return all variables, add `solve = solve'`
+-- for a minor performance improvement.
+addZeroes :: MIP.Problem Scientific -> MIP.Solution Scientific -> MIP.Solution Scientific
+addZeroes problem (Solution stat obj solmap) = 
+  -- Map.union is left-biased: only values not present in the solution are added.
+  Solution stat obj $ Map.union solmap (Map.fromSet (const 0) (vars problem))
