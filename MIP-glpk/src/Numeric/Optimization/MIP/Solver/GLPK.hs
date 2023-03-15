@@ -46,7 +46,9 @@ glpk :: GLPK
 glpk = GLPK
 
 instance IsSolver GLPK IO where
-  solve _solver opt prob =
+  solve = solve'
+  
+  solve' _solver opt prob =
     (if rtsSupportsBoundThreads then runInBoundThread else id) $
     bracket Raw.glp_init_env (\ret -> when (ret == 0) $ Raw.glp_free_env >> return ()) $ \_ -> do
     bracket Raw.glp_create_prob Raw.glp_delete_prob $ \prob' -> do
