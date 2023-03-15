@@ -31,6 +31,8 @@ data SolveOptions
     -- ^ invoked when a solver output a line
   , solveErrorLogger :: String -> IO ()
     -- ^ invoked when a solver output a line to stderr
+  , solveCondensedSolution :: Bool
+    -- ^ potentially omit variables set to zero from the solution
   }
 
 instance Default SolveOptions where
@@ -39,13 +41,14 @@ instance Default SolveOptions where
     { solveTimeLimit = Nothing
     , solveLogger = const $ return ()
     , solveErrorLogger = const $ return ()
+    , solveCondensedSolution = False
     }
 
 
 class Monad m => IsSolver s m | s -> m where
   solve' :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
   solve  :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
-  solve s opts problem = addZeroes problem <$> solve' s opts problem
+  solve s opts problem = (if solveCondensedSolution opts then addZeroes problem else id) <$> solve' s opts problem
   {-# MINIMAL solve' #-}
 
 -- Several solvers (at least CBC) do not include any variables set to 0 in their solution.
