@@ -128,10 +128,19 @@ jobs:
           curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
           7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
 
+      # See https://www.msys2.org/news/#2020-06-29-new-packagers about the msys2-keyring workaround
       - name: Install packages (MINGW)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX != ''
         shell: bash
-        run: stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
+        run: |
+          curl -O https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20220623-1-any.pkg.tar.zst
+          curl -O https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20220623-1-any.pkg.tar.zst.sig
+          stack exec ${{ matrix.stack_args }} -- bash -c "echo '[core]' >> /etc/pacman.conf && echo 'SigLevel = TrustAll' >> /etc/pacman.conf"
+          # stack exec ${{ matrix.stack_args }} -- bash -c "pacman-key --verify msys2-keyring-1~20220623-1-any.pkg.tar.zst.sig"
+          echo > tmp.txt
+          stack exec ${{ matrix.stack_args }} -- bash -c "pacman -U --noconfirm --config tmp.txt msys2-keyring-1~20220623-1-any.pkg.tar.zst"
+          stack exec ${{ matrix.stack_args }} -- pacman -Sy --noconfirm
+          stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
 
       - name: Setup SCIP Docker image
         if: matrix.scip_docker
