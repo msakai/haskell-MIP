@@ -33,7 +33,7 @@ jobs:
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
 
           - ghc: '8.10.4'
-            os: macos-latest
+            os: macos-12  # https://github.com/s-weigand/setup-conda/issues/432
             stack_yaml: 'stack-ghc-8.10.yaml'
             stack_args: ''
             stack_test_args: ''
