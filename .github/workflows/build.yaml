@@ -17,39 +17,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ghc: '8.10.4'
+          - ghc: '9.8.2'
             os: ubuntu-latest
-            stack_yaml: 'stack-ghc-8.10.yaml'
+            stack_yaml: 'stack-ghc-9.8.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+          - ghc: '9.6.6'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--coverage --haddock --no-haddock-deps'
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestSCIP'
             coveralls: true
             scip_docker: true
-          - ghc: '8.10.4'
+          - ghc: '9.4.8'
             os: ubuntu-latest
-            stack_yaml: 'stack-ghc-8.10.yaml'
+            stack_yaml: 'stack-ghc-9.4.yaml'
             stack_args: ''
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:-WithZLIB'
-            coveralls: false
-          - ghc: '8.8.4'
+          - ghc: '9.2.8'
             os: ubuntu-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
-            stack_args: '--coverage --haddock --no-haddock-deps'
+            stack_yaml: 'stack-ghc-9.2.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+          - ghc: '9.0.2'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.0.yaml'
+            stack_args: ''
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
 
-          - ghc: '8.10.4'
+          - ghc: '9.6.6'
             os: macos-12  # https://github.com/s-weigand/setup-conda/issues/432
-            stack_yaml: 'stack-ghc-8.10.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: ''
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
             coveralls: false
 
-          - ghc: '8.10.4'
+          - ghc: '9.6.6'
             os: windows-latest
-            stack_yaml: 'stack-ghc-8.10.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
@@ -65,9 +76,9 @@ jobs:
             coveralls: false
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: ''
-          - ghc: '8.10.4'
+          - ghc: '9.6.6'
             os: windows-latest
-            stack_yaml: 'stack-ghc-8.10.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
             flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
