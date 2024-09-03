@@ -95,7 +95,7 @@ jobs:
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: 'mingw-w64-i686'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: haskell-actions/setup@v2
         id: setup-haskell
