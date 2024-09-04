@@ -2,6 +2,10 @@
 
 ## Unreleased changes
 
+## 0.1.2.0
+
+* support mtl-2.3
+
 ## 0.1.1.0
 
 * re-export `Default` class from `Numeric.Optimization.MIP`.
