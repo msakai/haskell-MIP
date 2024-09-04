@@ -1,5 +1,5 @@
 name:                MIP
-version:             0.1.1.0
+version:             0.1.2.0
 github:              "msakai/haskell-MIP"
 license:             BSD3
 author:              "Masahiro Sakai"

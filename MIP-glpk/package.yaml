@@ -1,5 +1,5 @@
 name:                MIP-glpk
-version:             0.1.1.0
+version:             0.1.2.0
 github:              "msakai/haskell-MIP"
 # license:             GPL-3.0-or-later
 license-file:        COPYING
