@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -47,9 +46,6 @@ import Data.Default.Class
 import Data.Interned
 import Data.List
 import Data.Maybe
-#if !MIN_VERSION_base(4,9,0)
-import Data.Monoid
-#endif
 import Data.Scientific (Scientific)
 import Data.Map (Map)
 import qualified Data.Map as Map
