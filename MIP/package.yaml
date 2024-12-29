@@ -76,7 +76,7 @@ library:
   - extended-reals >=0.1 && <1.0
   - filepath
   - intern >=0.9.1.2 && <1.0.0.0
-  - megaparsec >=5 && <10
+  - megaparsec >=7 && <10
   - mtl >=2.1.2 && <2.4
   - OptDir
   - process >=1.1.0.2
