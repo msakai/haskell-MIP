@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -38,17 +37,11 @@ module Numeric.Optimization.MIP.MPSFile
   , render
   ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<$>), (<*))
-#endif
 import Control.Exception (throwIO)
 import Control.Monad
 import Control.Monad.Writer
 import Data.Default.Class
 import Data.Maybe
-#if !MIN_VERSION_base(4,9,0)
-import Data.Monoid
-#endif
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
@@ -63,17 +56,10 @@ import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.IO as TLIO
 import System.IO
-#if MIN_VERSION_megaparsec(6,0,0)
 import Text.Megaparsec hiding  (ParseError)
 import Text.Megaparsec.Char hiding (string', newline)
 import qualified Text.Megaparsec.Char as P
 import qualified Text.Megaparsec.Char.Lexer as Lexer
-#else
-import qualified Text.Megaparsec as P
-import Text.Megaparsec hiding (string', newline, ParseError)
-import qualified Text.Megaparsec.Lexer as Lexer
-import Text.Megaparsec.Prim (MonadParsec ())
-#endif
 
 import Data.OptDir
 import qualified Numeric.Optimization.MIP.Base as MIP
@@ -98,19 +84,11 @@ data BoundType
 
 -- ---------------------------------------------------------------------------
 
-#if MIN_VERSION_megaparsec(6,0,0)
 type C e s m = (MonadParsec e s m, Token s ~ Char, IsString (Tokens s))
-#else
-type C e s m = (MonadParsec e s m, Token s ~ Char)
-#endif
 
 -- | Parse a string containing MPS file data.
 -- The source name is only used in error messages and may be the empty string.
-#if MIN_VERSION_megaparsec(6,0,0)
 parseString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#else
-parseString :: (Stream s, Token s ~ Char) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#endif
 parseString _ = parse (parser <* eof)
 
 -- | Parse a file containing MPS file data.
@@ -128,10 +106,8 @@ parseFile opt fname = do
 -- ---------------------------------------------------------------------------
 
 
-#if MIN_VERSION_megaparsec(7,0,0)
 anyChar :: C e s m => m Char
 anyChar = anySingle
-#endif
 
 space' :: C e s m => m Char
 space' = oneOf [' ', '\t']
@@ -174,20 +150,12 @@ stringLn :: C e s m => String -> m ()
 stringLn s = string (fromString s) >> newline'
 
 number :: forall e s m. C e s m => m Scientific
-#if MIN_VERSION_megaparsec(6,0,0)
 number = tok $ Lexer.signed (return ()) Lexer.scientific
-#else
-number = tok $ Lexer.signed (return ()) Lexer.number
-#endif
 
 -- ---------------------------------------------------------------------------
 
 -- | MPS file parser
-#if MIN_VERSION_megaparsec(6,0,0)
 parser :: (MonadParsec e s m, Token s ~ Char, IsString (Tokens s)) => m (MIP.Problem Scientific)
-#else
-parser :: (MonadParsec e s m, Token s ~ Char) => m (MIP.Problem Scientific)
-#endif
 parser = do
   many commentline
 
