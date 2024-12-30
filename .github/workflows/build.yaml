@@ -17,7 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ghc: '9.8.2'
+          - ghc: '9.10.1'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.10.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+          - ghc: '9.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.8.yaml'
             stack_args: ''
