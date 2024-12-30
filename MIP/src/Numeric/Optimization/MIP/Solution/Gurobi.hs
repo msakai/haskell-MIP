@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
@@ -23,7 +24,9 @@ module Numeric.Optimization.MIP.Solution.Gurobi
 import Prelude hiding (readFile, writeFile)
 import Data.Default.Class
 import Data.Interned (intern, unintern)
+#if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
+#endif
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
 import qualified Data.Text.Lazy as TL
