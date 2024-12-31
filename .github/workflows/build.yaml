@@ -59,7 +59,7 @@ jobs:
           - ghc: '9.6.6'
             os: macos-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
-            stack_args: ''
+            stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
