@@ -115,11 +115,13 @@ jobs:
 
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
-        with: 
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
+        with:
           python-version: 3.12
           conda-channels: 'http://conda.anaconda.org/gurobi'
 
       - name: Install Gurobi
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
         run: conda install gurobi
 
       - name: Install packages (Linux)
