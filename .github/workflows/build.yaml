@@ -57,7 +57,7 @@ jobs:
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
 
           - ghc: '9.6.6'
-            os: macos-12  # https://github.com/s-weigand/setup-conda/issues/432
+            os: macos-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: ''
             stack_test_args: ''
@@ -113,6 +113,8 @@ jobs:
           stack-no-global: true
           stack-setup-ghc: true
 
+      # setup-conda does not work on macos-13 and later
+      # https://github.com/s-weigand/setup-conda/issues/432
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
         if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
