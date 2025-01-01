@@ -133,10 +133,7 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cbc glpk
-          curl -L https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz | tar xz
-          (cd lp_solve_5.5/lp_solve && sh ccc.osx)
-          echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
+          brew install cbc glpk lp_solve
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''
