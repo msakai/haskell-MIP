@@ -57,11 +57,11 @@ jobs:
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
 
           - ghc: '9.6.6'
-            os: macos-12  # https://github.com/s-weigand/setup-conda/issues/432
+            os: macos-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
-            stack_args: ''
+            stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
             coveralls: false
 
           - ghc: '9.6.6'
@@ -113,13 +113,17 @@ jobs:
           stack-no-global: true
           stack-setup-ghc: true
 
+      # setup-conda does not work on macos-13 and later
+      # https://github.com/s-weigand/setup-conda/issues/432
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
-        with: 
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
+        with:
           python-version: 3.12
           conda-channels: 'http://conda.anaconda.org/gurobi'
 
       - name: Install Gurobi
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
         run: conda install gurobi
 
       - name: Install packages (Linux)
@@ -129,10 +133,7 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cbc glpk
-          curl -L https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz | tar xz
-          (cd lp_solve_5.5/lp_solve && sh ccc.osx)
-          echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
+          brew install cbc glpk lp_solve
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''
