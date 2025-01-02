@@ -61,7 +61,7 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS'
             coveralls: false
 
           - ghc: '9.6.6'
@@ -133,7 +133,7 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cbc glpk lp_solve
+          brew install cbc glpk highs lp_solve
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''

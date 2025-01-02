@@ -48,6 +48,11 @@ flags:
     manual: True
     default: False
 
+  TestHiGHS:
+    description: run test cases that depend on highs command
+    manual: True
+    default: False
+
   TestLPSolve:
     description: run test cases that depend on lp_solve command
     manual: True
@@ -128,6 +133,11 @@ tests:
       - condition: flag(TestGurobiCl)
         then:
           cpp-options: "-DTEST_GUROBI_CL"
+        else:
+          cpp-options: " "
+      - condition: flag(TestHiGHS)
+        then:
+          cpp-options: "-DTEST_HIGHS"
         else:
           cpp-options: " "
       - condition: flag(TestLPSolve)
