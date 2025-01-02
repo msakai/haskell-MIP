@@ -21,6 +21,7 @@ import qualified Numeric.Optimization.MIP.Solution.CBC as CBCSol
 import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
 import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
 import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
+import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
 import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
 
 prop_status_refl :: Property
@@ -139,6 +140,36 @@ case_GurobiSol = do
   sol <- GurobiSol.readFile "samples/lp/test-solution-gurobi.sol"
   isJust (GurobiSol.solObjectiveValue sol) @?= True
   GurobiSol.parse (GurobiSol.render sol) @?= sol
+
+case_HiGHSSol :: Assertion
+case_HiGHSSol = do
+  sol <- HiGHSSol.readFile "samples/lp/test-solution-highs.sol"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusOptimal
+    , MIP.solObjectiveValue = Just 122.5
+    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
+    }
+
+case_HiGHSSol_infeasible :: Assertion
+case_HiGHSSol_infeasible = do
+  sol <- HiGHSSol.readFile "samples/lp/test-solution-highs-infeasible.sol"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusInfeasible
+    , MIP.solObjectiveValue = Nothing
+    , MIP.solVariables = Map.empty
+    }
+
+case_HiGHSSol_unbounded :: Assertion
+case_HiGHSSol_unbounded = do
+  sol <- HiGHSSol.readFile "samples/lp/test-solution-highs-unbounded.sol"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusInfeasibleOrUnbounded
+    , MIP.solObjectiveValue = Nothing
+    , MIP.solVariables = Map.empty
+    }
 
 case_SCIPSol :: Assertion
 case_SCIPSol = do
