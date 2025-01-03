@@ -58,7 +58,7 @@ instance IsSolver CBC IO where
                     ++ ["solve", "solu", fname2]
                 onGetLine = solveLogger opt
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (cbcPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (cbcPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do

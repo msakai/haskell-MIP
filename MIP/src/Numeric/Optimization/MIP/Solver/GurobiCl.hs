@@ -69,7 +69,7 @@ instance IsSolver GurobiCl IO where
                     _ -> return ()
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (gurobiClPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (gurobiClPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do
