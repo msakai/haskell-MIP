@@ -1,0 +1,30 @@
+{ 
+    "version": "v2.5.0", 
+    "name": "test", 
+    "number_of_variables": 4, 
+    "number_of_constraints": 4, 
+    "is_found_feasible_solution": true, 
+    "objective": -1.070000e+02, 
+    "total_violation": 0.000000e+00, 
+    "variables": { 
+        "x3": 22, 
+        "x2": 7, 
+        "x1": 29, 
+        "x4": 2
+    }, 
+    "expressions": { 
+        "x2_dependent": 7.000000e+00
+    }, 
+    "constraints": { 
+        "c3_less": -3.000000e+00, 
+        "c1": 0.000000e+00, 
+        "c2": 0.000000e+00, 
+        "c3": 0.000000e+00
+    }, 
+    "violations": { 
+        "c3_less": 0.000000e+00, 
+        "c1": 0.000000e+00, 
+        "c2": 0.000000e+00, 
+        "c3": 0.000000e+00
+    }
+}

@@ -78,6 +78,7 @@ library:
   other-extensions:
   - CPP
   dependencies:
+  - aeson >=1.4.2.0
   - extended-reals >=0.1 && <1.0
   - filepath
   - intern >=0.9.1.2 && <1.0.0.0
