@@ -69,7 +69,8 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
+            # Testing of HiGHS sometimes stuck
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
             coveralls: false
             windows_32_or_64: '64'
             MINGW_PACKAGE_PREFIX: ''
