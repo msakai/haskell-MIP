@@ -87,7 +87,7 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS'
             coveralls: false
             windows_32_or_64: '64'
             MINGW_PACKAGE_PREFIX: 'mingw-w64-x86_64'
@@ -175,7 +175,9 @@ jobs:
         run: |
           stack exec ${{ matrix.stack_args }} -- pacman -Sy --noconfirm
           stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
-
+          if [[ ${{ matrix.MINGW_PACKAGE_PREFIX }} != 'mingw-w64-i686' ]]; then
+            stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-highs
+          fi
       - name: Setup SCIP Docker image
         if: matrix.scip_docker
         run: |
