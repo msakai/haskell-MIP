@@ -7,6 +7,7 @@ module Test.MIPSolver (mipSolverTestGroup) where
 import Control.Monad
 import Data.Default.Class
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Numeric.Optimization.MIP as MIP
@@ -250,6 +251,16 @@ case_lpSolve_infeasible2 = do
 
 -- ------------------------------------------------------------------------
 
+case_printemps :: Assertion
+case_printemps = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  sol <- solve printemps def prob{ MIP.varType = fmap (const MIP.IntegerVariable) (MIP.varType prob) }
+  MIP.solStatus sol @?= MIP.StatusFeasible
+  Map.keysSet (MIP.solVariables sol) @?= Set.fromList ["x1", "x2", "x3", "x4"]
+  -- TODO: check consistency between variables and objective value
+
+-- ------------------------------------------------------------------------
+
 case_scip :: Assertion
 case_scip = do
   prob <- MIP.readFile def "samples/lp/test.lp"
@@ -338,6 +349,11 @@ mipSolverTestGroup = testGroup "Test.MIPSolver" $ []
   , testCase "lpSolve unbounded" case_lpSolve_unbounded
   , testCase "lpSolve infeasible" case_lpSolve_infeasible
   , testCase "lpSolve infeasible2" case_lpSolve_infeasible2
+  ]
+#endif
+#ifdef TEST_PRINTEMPS
+  ++
+  [ testCase "printemps" case_printemps
   ]
 #endif
 #ifdef TEST_SCIP

@@ -58,6 +58,11 @@ flags:
     manual: True
     default: False
 
+  TestPrintemps:
+    description: run test cases that depend on mps_solver.exe command of printemps
+    manual: True
+    default: False
+
   TestSCIP:
     description: run test cases that depend on scip command
     manual: True
@@ -144,6 +149,11 @@ tests:
       - condition: flag(TestLPSolve)
         then:
           cpp-options: "-DTEST_LP_SOLVE"
+        else:
+          cpp-options: " "
+      - condition: flag(TestPrintemps)
+        then:
+          cpp-options: "-DTEST_PRINTEMPS"
         else:
           cpp-options: " "
       - condition: flag(TestSCIP)
