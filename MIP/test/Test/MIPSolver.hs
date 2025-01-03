@@ -168,6 +168,47 @@ case_gurobiCl_infeasible2 = do
 
 -- ------------------------------------------------------------------------
 
+case_highs :: Assertion
+case_highs = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  sol <- solve highs def prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusOptimal
+    , MIP.solObjectiveValue = Just 122.5
+    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
+    }
+
+case_highs_unbounded :: Assertion
+case_highs_unbounded = do
+  prob <- MIP.readFile def "samples/lp/unbounded-ip.lp"
+  sol <- solve highs def prob
+  let status = MIP.solStatus sol
+  unless (status == MIP.StatusUnbounded || status == MIP.StatusFeasible || status == MIP.StatusInfeasibleOrUnbounded) $
+    assertFailure $ unlines $
+      [ "expected: StatusUnbounded, StatusFeasible or StatusInfeasibleOrUnbounded"
+      , " but got: " ++ show status
+      ]
+
+case_highs_infeasible :: Assertion
+case_highs_infeasible = do
+  prob <- MIP.readFile def "samples/lp/infeasible.lp"
+  sol <- solve highs def prob
+  MIP.solStatus sol @?= MIP.StatusInfeasible
+
+case_highs_infeasible2 :: Assertion
+case_highs_infeasible2 = do
+  prob <- MIP.readFile def "samples/lp/glpk-preprocess-bug.lp"
+  sol <- solve highs def prob
+  let status = MIP.solStatus sol
+  unless (status == MIP.StatusInfeasible || status == MIP.StatusInfeasibleOrUnbounded) $
+    assertFailure $ unlines $
+      [ "expected: StatusInfeasible or StatusInfeasibleOrUnbounded"
+      , " but got: " ++ show status
+      ]
+
+-- ------------------------------------------------------------------------
+
 case_lpSolve :: Assertion
 case_lpSolve = do
   prob <- MIP.readFile def "samples/lp/test.lp"
@@ -281,6 +322,14 @@ mipSolverTestGroup = testGroup "Test.MIPSolver" $ []
   , testCase "gurobiCl unbounded" case_gurobiCl_unbounded
   , testCase "gurobiCl infeasible" case_gurobiCl_infeasible
   , testCase "gurobiCl infeasible2" case_gurobiCl_infeasible2
+  ]
+#endif
+#ifdef TEST_HIGHS
+  ++
+  [ testCase "highs" case_highs
+  , testCase "highs unbounded" case_highs_unbounded
+  , testCase "highs infeasible" case_highs_infeasible
+  , testCase "highs infeasible2" case_highs_infeasible2
   ]
 #endif
 #ifdef TEST_LP_SOLVE

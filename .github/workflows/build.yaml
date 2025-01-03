@@ -22,19 +22,19 @@ jobs:
             stack_yaml: 'stack-ghc-9.10.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
           - ghc: '9.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.8.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
           - ghc: '9.6.6'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--coverage --haddock --no-haddock-deps'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestSCIP'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS --flag MIP:TestSCIP'
             coveralls: true
             scip_docker: true
           - ghc: '9.4.8'
@@ -42,26 +42,26 @@ jobs:
             stack_yaml: 'stack-ghc-9.4.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:-WithZLIB'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS --flag MIP:-WithZLIB'
           - ghc: '9.2.8'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.2.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
           - ghc: '9.0.2'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.0.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
 
           - ghc: '9.6.6'
             os: macos-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS'
             coveralls: false
 
           - ghc: '9.6.6'
@@ -69,6 +69,7 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            # Testing of HiGHS sometimes stuck
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
             coveralls: false
             windows_32_or_64: '64'
@@ -78,7 +79,7 @@ jobs:
             stack_yaml: 'stack-windows-i386.yaml'
             stack_args: '--arch i386'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS'
             coveralls: false
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: ''
@@ -87,7 +88,7 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS'
             coveralls: false
             windows_32_or_64: '64'
             MINGW_PACKAGE_PREFIX: 'mingw-w64-x86_64'
@@ -128,12 +129,18 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+        run: |
+          sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+
+          echo $GITHUB_WORKSPACE >> $GITHUB_PATH
+          fname=HiGHSstatic.v1.9.0.x86_64-linux-gnu-cxx11.tar.gz
+          curl -o${fname} -L --insecure https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.9.0%2B0/${fname}
+          tar zxf ${fname} bin/highs --strip-components 1
 
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cbc glpk lp_solve
+          brew install cbc glpk highs lp_solve
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''
@@ -153,6 +160,14 @@ jobs:
 
           curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
           7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
+
+          if [[ ${{ matrix.windows_32_or_64 }} == "32" ]]; then
+              fname=HiGHSstatic.v1.9.0.i686-w64-mingw32.tar.gz
+          else
+              fname=HiGHSstatic.v1.9.0.x86_64-w64-mingw32.tar.gz
+          fi
+          curl -o${fname} -L --insecure https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.9.0%2B0/${fname}
+          tar zxf ${fname} bin/highs.exe --strip-components 1
 
       # See https://www.msys2.org/news/#2020-06-29-new-packagers about the msys2-keyring workaround
       - name: Fix msys2-keyring in stack-msys environment
@@ -175,7 +190,9 @@ jobs:
         run: |
           stack exec ${{ matrix.stack_args }} -- pacman -Sy --noconfirm
           stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
-
+          if [[ ${{ matrix.MINGW_PACKAGE_PREFIX }} != 'mingw-w64-i686' ]]; then
+            stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-highs
+          fi
       - name: Setup SCIP Docker image
         if: matrix.scip_docker
         run: |
