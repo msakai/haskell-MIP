@@ -149,8 +149,8 @@ jobs:
         run: |
           echo $GITHUB_WORKSPACE >> $GITHUB_PATH
 
-          curl -oCOIN-OR-1.8.0-win32-msvc12.zip -L --insecure https://www.coin-or.org/download/binary/OptimizationSuite/COIN-OR-1.8.0-win32-msvc12.zip
-          7z e COIN-OR-1.8.0-win32-msvc12.zip COIN-OR/win32-msvc12/bin/cbc.exe
+          curl -oCbc-releases.2.10.12-w64-msvc17-md.zip -L --insecure https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.12/Cbc-releases.2.10.12-w64-msvc17-md.zip
+          7z e Cbc-releases.2.10.12-w64-msvc17-md.zip bin/cbc.exe
 
           curl -owinglpk-4.65.zip -L --insecure https://jaist.dl.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip
           7z x winglpk-4.65.zip
