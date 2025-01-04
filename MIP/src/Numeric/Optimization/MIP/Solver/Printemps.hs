@@ -18,7 +18,10 @@ module Numeric.Optimization.MIP.Solver.Printemps
   , printemps
   ) where
 
+import qualified Data.Aeson as J
 import Data.Default.Class
+import Data.Map.Lazy (Map)
+import qualified Data.Map.Lazy as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TLIO
 import System.IO.Temp
@@ -56,13 +59,37 @@ instance IsSolver Printemps IO where
             OptMin -> (prob', id)
             OptMax -> (prob'{ objectiveFunction = obj{ objDir = OptMin, objExpr = negate (objExpr obj) } }, negate)
 
+    let (orig_option_file, args') = removeOptionArgs (printempsArgs solver)
+    orig_option <-
+      case orig_option_file of
+        Nothing -> return Map.empty
+        Just fname -> do
+          ret <- J.eitherDecodeFileStrict' fname
+          case ret of
+            Left err -> ioError $ userError err
+            Right option -> return option
+    orig_general <-
+      case J.fromJSON (Map.findWithDefault (J.object []) "general" orig_option) of
+        J.Error err -> ioError $ userError err
+        J.Success val -> return val
+    let general :: Map T.Text J.Value
+        general =
+          case solveTimeLimit opt of
+            Nothing -> orig_general
+            Just t -> Map.insert "time_max" (J.toJSON t) orig_general
+        option :: Map T.Text J.Value
+        option = Map.insert "general" (J.toJSON general) orig_option
+
     withSystemTempDirectory "printemps" $ \path ->
       case MPSFile.render def{ optMPSWriteObjSense = WriteIfNotDefault } prob'' of
         Left err -> ioError $ userError err
         Right s -> do
-          let fname1 = path </> "input.mps"
-          TLIO.writeFile fname1 s
-          let args = printempsArgs solver ++ [fname1]
+          let problem_file = path </> "input.mps"
+          TLIO.writeFile problem_file s
+          let option_file = path </> "option.json"
+          J.encodeFile option_file option
+
+          let args = ["-p", option_file] ++ args' ++ [problem_file]
               onGetLine s = solveLogger opt s
               onGetErrorLine = solveErrorLogger opt
           exitcode <- runProcessWithOutputCallback (printempsPath solver) args (Just path) "" onGetLine onGetErrorLine
@@ -71,3 +98,10 @@ instance IsSolver Printemps IO where
           else do
             sol <- PrintempsSol.readFile (path </> "incumbent.json")
             return $ sol{ solObjectiveValue = fmap postProcess (solObjectiveValue sol) }
+
+removeOptionArgs :: [String] -> (Maybe FilePath, [String])
+removeOptionArgs = f Nothing []
+  where
+    f optionFile args [] = (optionFile, reverse args)
+    f _ args ("-p" : fname : xs) = f (Just fname) args xs
+    f optionFile args (x : xs) = f optionFile (x : args) xs

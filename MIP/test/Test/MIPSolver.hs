@@ -260,6 +260,12 @@ case_printemps = do
   Map.keysSet vs @?= Set.fromList ["x1", "x2", "x3", "x4"]
   Just (sum [c * (vs Map.! v) | (c, v) <- [(1, "x1"), (2, "x2"), (3, "x3"), (1, "x4")]]) @?= MIP.solObjectiveValue sol 
 
+case_printemps_with_time_limit :: Assertion
+case_printemps_with_time_limit = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  _ <- solve printemps def{ solveTimeLimit = Just 1 } prob{ MIP.varType = fmap (const MIP.IntegerVariable) (MIP.varType prob) }
+  return ()
+
 -- ------------------------------------------------------------------------
 
 case_scip :: Assertion
@@ -355,6 +361,7 @@ mipSolverTestGroup = testGroup "Test.MIPSolver" $ []
 #ifdef TEST_PRINTEMPS
   ++
   [ testCase "printemps" case_printemps
+  , testCase "printemps with time limit" case_printemps_with_time_limit
   ]
 #endif
 #ifdef TEST_SCIP
