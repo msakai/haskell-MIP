@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.MIP.Base
@@ -21,7 +23,8 @@ module Numeric.Optimization.MIP.Base
   , Label
 
   -- * Variables
-  , Var
+  , Var (Var)
+  , varName
   , toVar
   , fromVar
 
@@ -93,7 +96,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Interned (unintern)
+import Data.Interned (intern, unintern)
 import Data.Interned.Text
 import Data.ExtendedReal
 import Data.OptDir
@@ -145,15 +148,39 @@ type Label = T.Text
 -- ---------------------------------------------------------------------------
 
 -- | variable
-type Var = InternedText
+newtype Var = Var' InternedText
+  deriving Eq
 
+pattern Var :: T.Text -> Var
+pattern Var s <- Var' (unintern -> s) where
+  Var s = Var' (intern s)
+
+{-# COMPLETE Var #-}
+
+instance IsString Var where
+  fromString = Var' . fromString
+
+instance Ord Var where
+  compare (Var' a) (Var' b)
+    | a == b = EQ
+    | otherwise = compare (unintern a) (unintern b)
+
+instance Show Var where
+  showsPrec d (Var x) = showsPrec d x
+
+-- | Variable's name
+varName :: Var -> T.Text
+varName (Var s) = s
+
+{-# DEPRECATED toVar "Use fromString function or Var pattern instead" #-}
 -- | convert a string into a variable
 toVar :: String -> Var
 toVar = fromString
 
+{-# DEPRECATED fromVar "Use varName function or Var pattern instead" #-}
 -- | convert a variable into a string
 fromVar :: Var -> String
-fromVar = T.unpack . unintern
+fromVar (Var s) = T.unpack s
 
 data VarType
   = ContinuousVariable

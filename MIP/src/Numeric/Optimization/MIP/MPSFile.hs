@@ -141,7 +141,7 @@ row :: C e s m => m Row
 row = liftM intern ident
 
 column :: C e s m => m Column
-column = liftM intern $ ident
+column = liftM MIP.Var $ ident
 
 ident :: C e s m => m T.Text
 ident = liftM fromString $ tok $ some $ noneOf [' ', '\t', '\n']
@@ -426,7 +426,7 @@ colsSection = do
 
     entry :: T.Text -> m (Column, Map Row Scientific)
     entry x = do
-      let col = intern x
+      let col = MIP.Var x
       rv1 <- rowAndVal
       opt <- optional rowAndVal
       newline'
@@ -667,7 +667,7 @@ render' opt mip = do
              ]
       f col xs =
         forM_ (Map.toList xs) $ \(r, d) -> do
-          writeFields ["", unintern col, r, showValue d]
+          writeFields ["", MIP.varName col, r, showValue d]
       ivs = MIP.integerVariables mip `Set.union` MIP.semiIntegerVariables mip
   forM_ (Map.toList (Map.filterWithKey (\col _ -> col `Set.notMember` ivs) cols)) $ \(col, xs) -> f col xs
   unless (Set.null ivs) $ do
@@ -695,28 +695,28 @@ render' opt mip = do
     case (lb,ub)  of
       (MIP.NegInf, MIP.PosInf) -> do
         -- free variable (no lower or upper bound)
-        writeFields ["FR", "bound", unintern col]
+        writeFields ["FR", "bound", MIP.varName col]
 
       (MIP.Finite 0, MIP.Finite 1) | vt == MIP.IntegerVariable -> do
         -- variable is binary (equal 0 or 1)
-        writeFields ["BV", "bound", unintern col]
+        writeFields ["BV", "bound", MIP.varName col]
 
       (MIP.Finite a, MIP.Finite b) | a == b -> do
         -- variable is fixed at the specified value
-        writeFields ["FX", "bound", unintern col, showValue a]
+        writeFields ["FX", "bound", MIP.varName col, showValue a]
 
       _ -> do
         case lb of
           MIP.PosInf -> error "should not happen"
           MIP.NegInf -> do
             -- Minus infinity
-            writeFields ["MI", "bound", unintern col]
+            writeFields ["MI", "bound", MIP.varName col]
           MIP.Finite 0 | vt == MIP.ContinuousVariable -> return ()
           MIP.Finite a -> do
             let t = case vt of
                       MIP.IntegerVariable -> "LI" -- lower bound for integer variable
                       _ -> "LO" -- Lower bound
-            writeFields [t, "bound", unintern col, showValue a]
+            writeFields [t, "bound", MIP.varName col, showValue a]
 
         case ub of
           MIP.NegInf -> error "should not happen"
@@ -724,7 +724,7 @@ render' opt mip = do
           MIP.PosInf -> do
             when (vt == MIP.SemiContinuousVariable || vt == MIP.SemiIntegerVariable) $
               error "cannot express +inf upper bound of semi-continuous or semi-integer variable"
-            writeFields ["PL", "bound", unintern col] -- Plus infinity
+            writeFields ["PL", "bound", MIP.varName col] -- Plus infinity
           MIP.Finite a -> do
             let t = case vt of
                       MIP.SemiContinuousVariable -> "SC" -- Upper bound for semi-continuous variable
@@ -733,7 +733,7 @@ render' opt mip = do
                         "SC"
                       MIP.IntegerVariable -> "UI" -- Upper bound for integer variable
                       _ -> "UP" -- Upper bound
-            writeFields [t, "bound", unintern col, showValue a]
+            writeFields [t, "bound", MIP.varName col, showValue a]
 
   -- QMATRIX section
   -- Gurobiは対称行列になっていないと "qmatrix isn't symmetric" というエラーを発生させる
@@ -741,7 +741,7 @@ render' opt mip = do
      unless (Map.null qm) $ do
        writeSectionHeader "QMATRIX"
        forM_ (Map.toList qm) $ \(((v1,v2), val)) -> do
-         writeFields ["", unintern v1, unintern v2, showValue val]
+         writeFields ["", MIP.varName v1, MIP.varName v2, showValue val]
 
   -- SOS section
   unless (null (MIP.sosConstraints mip)) $ do
@@ -752,7 +752,7 @@ render' opt mip = do
                 MIP.S2 -> "S2"
       writeFields $ t : maybeToList (MIP.sosLabel sos)
       forM_ (MIP.sosBody sos) $ \(var,val) -> do
-        writeFields ["", unintern var, showValue val]
+        writeFields ["", MIP.varName var, showValue val]
 
   -- QCMATRIX section
   let xs = [ (fromJust $ MIP.constrLabel c, qm)
@@ -765,7 +765,7 @@ render' opt mip = do
       -- The name starts in column 12 in fixed formats.
       writeSectionHeader $ "QCMATRIX" <> T.replicate 3 " " <> r
       forM_ (Map.toList qm) $ \((v1,v2), val) -> do
-        writeFields ["", unintern v1, unintern v2, showValue val]
+        writeFields ["", MIP.varName v1, MIP.varName v2, showValue val]
 
   -- INDICATORS section
   -- Note: Gurobi-5.6.3 does not support this section.
@@ -774,7 +774,7 @@ render' opt mip = do
     writeSectionHeader "INDICATORS"
     forM_ ics $ \c -> do
       let Just (var,val) = MIP.constrIndicator c
-      writeFields ["IF", fromJust (MIP.constrLabel c), unintern var, showValue val]
+      writeFields ["IF", fromJust (MIP.constrLabel c), MIP.varName var, showValue val]
 
   -- ENDATA section
   writeSectionHeader "ENDATA"

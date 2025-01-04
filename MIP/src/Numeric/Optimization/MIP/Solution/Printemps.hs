@@ -20,7 +20,6 @@ module Numeric.Optimization.MIP.Solution.Printemps
 import Prelude hiding (readFile, writeFile)
 
 import qualified Data.Aeson as J
-import Data.Interned (intern)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
@@ -68,5 +67,5 @@ readFile fname = do
       , MIP.solObjectiveValue =
           Just (incumbentObjective incumbent)
       , MIP.solVariables =
-          Map.fromList [(intern v, val) | (v, val) <- Map.toList (incumbentVariables incumbent)]
+          Map.fromList [(MIP.Var v, val) | (v, val) <- Map.toList (incumbentVariables incumbent)]
       }

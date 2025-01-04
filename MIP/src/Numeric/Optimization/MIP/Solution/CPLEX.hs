@@ -21,7 +21,6 @@ module Numeric.Optimization.MIP.Solution.CPLEX
 
 import Prelude hiding (readFile)
 import Data.Default.Class
-import Data.Interned
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
@@ -65,7 +64,7 @@ parseDoc doc =
           let m = XML.elementAttributes e
           name <- Map.lookup "name" m
           value <- read . T.unpack <$> Map.lookup "value" m
-          return (intern name, value)
+          return (MIP.Var name, value)
       | otherwise = []
     vs = fromDocument doc
       $| element "CPLEXSolution"
