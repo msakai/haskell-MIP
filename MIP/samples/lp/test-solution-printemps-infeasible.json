@@ -1,0 +1,22 @@
+{ 
+    "version": "v2.5.0", 
+    "name": "infeasible2", 
+    "number_of_variables": 2, 
+    "number_of_constraints": 2, 
+    "is_found_feasible_solution": false, 
+    "objective": 0.000000e+00, 
+    "total_violation": 2.000000e+00, 
+    "variables": { 
+        "x": 0, 
+        "y": 0
+    }, 
+    "expressions": {}, 
+    "constraints": { 
+        "row1": 1.000000e+00, 
+        "row2": 1.000000e+00
+    }, 
+    "violations": { 
+        "row1": 1.000000e+00, 
+        "row2": 1.000000e+00
+    }
+}

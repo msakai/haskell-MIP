@@ -63,7 +63,7 @@ instance IsSolver SCIP IO where
                 args = scipArgs solver ++ concat [["-c", cmd] | cmd <- commands]
                 onGetLine = solveLogger opt
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (scipPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (scipPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> ScipSol.readFile fname2

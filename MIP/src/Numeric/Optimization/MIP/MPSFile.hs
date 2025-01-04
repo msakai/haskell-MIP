@@ -589,10 +589,10 @@ writeChar c = tell $ B.singleton c
 -- | Render a problem into a 'TL.Text' containing MPS file data.
 render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip | not (checkAtMostQuadratic mip) = Left "Expression must be atmost quadratic"
-render _ mip = Right $ execM $ render' $ nameRows mip
+render opt mip = Right $ execM $ render' opt $ nameRows mip
 
-render' :: MIP.Problem Scientific -> M ()
-render' mip = do
+render' :: MIP.FileOptions -> MIP.Problem Scientific -> M ()
+render' opt mip = do
   let probName = fromMaybe "" (MIP.name mip)
 
   -- NAME section
@@ -606,11 +606,13 @@ render' mip = do
        } = MIP.objectiveFunction mip
 
   -- OBJSENSE section
-  -- Note: GLPK-4.48 does not support this section.
-  writeSectionHeader "OBJSENSE"
-  case dir of
-    OptMin -> writeFields ["MIN"]
-    OptMax -> writeFields ["MAX"]
+  when (MIP.optMPSWriteObjSense opt == MIP.WriteAlways ||
+        MIP.optMPSWriteObjSense opt == MIP.WriteIfNotDefault && dir /= OptMin) $ do
+    -- Note: GLPK-4.48 does not support this section.
+    writeSectionHeader "OBJSENSE"
+    case dir of
+      OptMin -> writeFields ["MIN"]
+      OptMax -> writeFields ["MAX"]
 
 {-
   -- OBJNAME section

@@ -22,6 +22,7 @@ import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
 import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
 import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
 import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
+import qualified Numeric.Optimization.MIP.Solution.Printemps as PrintempsSol
 import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
 
 prop_status_refl :: Property
@@ -169,6 +170,26 @@ case_HiGHSSol_unbounded = do
     { MIP.solStatus = MIP.StatusInfeasibleOrUnbounded
     , MIP.solObjectiveValue = Nothing
     , MIP.solVariables = Map.empty
+    }
+
+case_PrintempsSol :: Assertion
+case_PrintempsSol = do
+  sol <- PrintempsSol.readFile "samples/lp/test-solution-printemps.json"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusFeasible
+    , MIP.solObjectiveValue = Just (-1.070000e+02)
+    , MIP.solVariables = Map.fromList [("x1", 29), ("x2", 7), ("x3", 22), ("x4", 2)]
+    }
+
+case_PrintempsSol_infeasible :: Assertion
+case_PrintempsSol_infeasible = do
+  sol <- PrintempsSol.readFile "samples/lp/test-solution-printemps-infeasible.json"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusUnknown
+    , MIP.solObjectiveValue = Just 0
+    , MIP.solVariables = Map.fromList [("x", 0), ("y", 0)]
     }
 
 case_SCIPSol :: Assertion

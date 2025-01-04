@@ -34,16 +34,18 @@ import GHC.IO.Exception ( IOErrorType(..), IOException(..) )
 runProcessWithOutputCallback
   :: FilePath -- ^ Filename of the executable (see 'proc' for details)
   -> [String] -- ^ any arguments
+  -> Maybe FilePath -- ^ optional path to the working directory for the new process
   -> String   -- ^ standard input
   -> (String -> IO ()) -- ^ callback function which is called when a line is read from stdout
   -> (String -> IO ()) -- ^ callback function which is called when a line is read from stderr
   -> IO ExitCode
-runProcessWithOutputCallback cmd args input putMsg putErr = do
+runProcessWithOutputCallback cmd args cwd input putMsg putErr = do
   (Just inh, Just outh, Just errh, processh) <- createProcess
     (proc cmd args)
     { std_in  = CreatePipe
     , std_out = CreatePipe
     , std_err = CreatePipe
+    , cwd = cwd
     }
   hSetBuffering outh LineBuffering
   hSetBuffering errh LineBuffering

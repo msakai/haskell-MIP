@@ -74,7 +74,7 @@ instance IsSolver LPSolve IO where
                     return ()
                 solveLogger opt s
               onGetErrorLine = solveErrorLogger opt
-          exitcode <- runProcessWithOutputCallback (lpSolvePath solver) args "" onGetLine onGetErrorLine
+          exitcode <- runProcessWithOutputCallback (lpSolvePath solver) args Nothing "" onGetLine onGetErrorLine
           status <-
             case exitcode of
               ExitSuccess      -> return MIP.StatusOptimal

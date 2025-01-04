@@ -18,6 +18,7 @@ module Numeric.Optimization.MIP.Solver
   , module Numeric.Optimization.MIP.Solver.GurobiCl
   , module Numeric.Optimization.MIP.Solver.HiGHS
   , module Numeric.Optimization.MIP.Solver.LPSolve
+  , module Numeric.Optimization.MIP.Solver.Printemps
   , module Numeric.Optimization.MIP.Solver.SCIP
   ) where
 
@@ -28,4 +29,5 @@ import Numeric.Optimization.MIP.Solver.Glpsol
 import Numeric.Optimization.MIP.Solver.GurobiCl
 import Numeric.Optimization.MIP.Solver.HiGHS
 import Numeric.Optimization.MIP.Solver.LPSolve
+import Numeric.Optimization.MIP.Solver.Printemps
 import Numeric.Optimization.MIP.Solver.SCIP

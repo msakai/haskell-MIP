@@ -70,7 +70,7 @@ instance IsSolver Glpsol IO where
                     _ -> return ()
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (glpsolPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (glpsolPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do
