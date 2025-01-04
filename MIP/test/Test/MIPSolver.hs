@@ -256,8 +256,9 @@ case_printemps = do
   prob <- MIP.readFile def "samples/lp/test.lp"
   sol <- solve printemps def prob{ MIP.varType = fmap (const MIP.IntegerVariable) (MIP.varType prob) }
   MIP.solStatus sol @?= MIP.StatusFeasible
-  Map.keysSet (MIP.solVariables sol) @?= Set.fromList ["x1", "x2", "x3", "x4"]
-  -- TODO: check consistency between variables and objective value
+  let vs = MIP.solVariables sol
+  Map.keysSet vs @?= Set.fromList ["x1", "x2", "x3", "x4"]
+  Just (sum [c * (vs Map.! v) | (c, v) <- [(1, "x1"), (2, "x2"), (3, "x3"), (1, "x4")]]) @?= MIP.solObjectiveValue sol 
 
 -- ------------------------------------------------------------------------
 
