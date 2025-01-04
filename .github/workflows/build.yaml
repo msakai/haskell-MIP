@@ -61,7 +61,7 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS --flag MIP:TestSCIP'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS --flag MIP:TestPrintemps --flag MIP:TestSCIP'
             coveralls: false
 
           - ghc: '9.6.6'
@@ -141,6 +141,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install cbc glpk highs lp_solve scip
+          brew install msakai/tap/printemps
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''

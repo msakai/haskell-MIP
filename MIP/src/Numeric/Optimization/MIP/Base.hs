@@ -75,6 +75,7 @@ module Numeric.Optimization.MIP.Base
 
   -- * File I/O options
   , FileOptions (..)
+  , WriteSetting (..)
 
   -- * Utilities
   , Default (..)
@@ -463,10 +464,18 @@ semiIntegerVariables mip = Map.keysSet $ Map.filter (SemiIntegerVariable ==) (va
 data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
+  , optMPSWriteObjSense :: WriteSetting
   } deriving (Show)
 
 instance Default FileOptions where
   def =
     FileOptions
     { optFileEncoding = Nothing
+    , optMPSWriteObjSense = WriteIfNotDefault
     }
+
+data WriteSetting
+  = WriteAlways
+  | WriteIfNotDefault
+  | WriteNever
+  deriving (Eq, Ord, Enum, Bounded, Show, Read)

@@ -70,7 +70,7 @@ instance IsSolver CPLEX IO where
                     writeIORef isInfeasibleRef True
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (cplexPath solver) (cplexArgs solver) input onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (cplexPath solver) (cplexArgs solver) Nothing input onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do

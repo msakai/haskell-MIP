@@ -55,5 +55,5 @@ instance IsSolver HiGHS IO where
                           Just sec -> ["--time_limit", show sec])
                 onGetLine s = solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            _exitcode <- runProcessWithOutputCallback (highsPath solver) args "" onGetLine onGetErrorLine
+            _exitcode <- runProcessWithOutputCallback (highsPath solver) args Nothing "" onGetLine onGetErrorLine
             HiGHSSol.readFile fname2
