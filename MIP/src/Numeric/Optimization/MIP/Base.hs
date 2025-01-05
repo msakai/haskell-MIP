@@ -92,6 +92,7 @@ import Algebra.Lattice
 import Algebra.PartialOrd
 import Control.Arrow ((***))
 import Data.Default.Class
+import Data.Hashable
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -167,6 +168,13 @@ instance Ord Var where
 
 instance Show Var where
   showsPrec d (Var x) = showsPrec d x
+
+instance Hashable Var where
+#if MIN_VERSION_intern(0,9,3)
+  hashWithSalt salt (Var' x) = hashWithSalt salt x
+#else
+  hashWithSalt salt (Var' x) = hashWithSalt salt (internedTextId x)
+#endif
 
 -- | Variable's name
 varName :: Var -> T.Text
