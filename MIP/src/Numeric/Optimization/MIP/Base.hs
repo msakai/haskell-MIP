@@ -1,7 +1,10 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
@@ -76,6 +79,11 @@ module Numeric.Optimization.MIP.Base
   , Status (..)
   , meetStatus
 
+  -- * Evaluation
+  , Tol (..)
+  , zeroTol
+  , Eval (..)
+
   -- * File I/O options
   , FileOptions (..)
   , WriteSetting (..)
@@ -91,9 +99,12 @@ import Algebra.Lattice
 #endif
 import Algebra.PartialOrd
 import Control.Arrow ((***))
+import Control.Monad
 import Data.Default.Class
+import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Ord (comparing)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Interned (intern, unintern)
@@ -439,6 +450,107 @@ instance Default (Solution r) where
         , solObjectiveValue = Nothing
         , solVariables = Map.empty
         }
+
+-- ---------------------------------------------------------------------------
+
+data Tol r
+  = Tol
+  { integralityTol :: r
+  , feasibilityTol :: r
+  , optimalityTol :: r
+  }
+
+-- | Defautl is @1e-6@ for the feasibility and optimality tolerances, and @1e-5@ for the integrality tolerance.
+instance Fractional r => Default (Tol r) where
+  def =
+    Tol
+    { integralityTol = 1e-5
+    , feasibilityTol = 1e-6
+    , optimalityTol = 1e-6
+    }
+
+zeroTol :: Fractional r => Tol r
+zeroTol =
+  Tol
+  { integralityTol = 1e-5
+  , feasibilityTol = 1e-6
+  , optimalityTol = 1e-6
+  }
+
+class Eval r a where
+  type Evaluated r a
+  eval :: Tol r -> Map Var r -> a -> Evaluated r a
+
+instance Num r => Eval r Var where
+  type Evaluated r Var = r
+  eval _tol sol v =
+    case Map.lookup v sol of
+      Just val -> val
+      Nothing -> 0
+
+instance Num r => Eval r (Term r) where
+  type Evaluated r (Term r) = r
+  eval tol sol (Term c vs) = product (c : [eval tol sol v | v <- vs])
+
+instance Num r => Eval r (Expr r) where
+  type Evaluated r (Expr r) = r
+  eval tol sol expr = sum [eval tol sol t | t <- terms expr]
+
+instance Num r => Eval r (ObjectiveFunction r) where
+  type Evaluated r (ObjectiveFunction r) = r
+  eval tol sol obj = eval tol sol (objExpr obj)
+
+instance (Num r, Ord r) => Eval r (Constraint r) where
+  type Evaluated r (Constraint r) = Bool
+  eval tol sol constr =
+    not (evalIndicator (constrIndicator constr)) ||
+    isInBounds tol (constrLB constr, constrUB constr) (eval tol sol (constrExpr constr))
+    where
+      evalIndicator Nothing = True
+      evalIndicator (Just (v, val')) = isInBounds tol (Finite val', Finite val') (eval tol sol v)
+
+instance (Num r, Ord r) => Eval r (SOSConstraint r) where
+  type Evaluated r (SOSConstraint r) = Bool
+  eval tol sol sos =
+    case sosType sos of
+      S1 -> length [() | val <- body, val] <= 1
+      S2 -> f body
+    where
+      body = map (not . isInBounds tol (0, 0) . eval tol sol . fst) $ sortBy (comparing snd) $ (sosBody sos)
+      f [] = True
+      f [_] = True
+      f (x1 : x2 : xs)
+        | x1 = all not xs
+        | otherwise = f (x2 : xs)
+
+instance (RealFrac r) => Eval r (Problem r) where
+  type Evaluated r (Problem r) = Maybe r
+  eval tol sol prob = do
+    forM_ (Map.toList (Map.intersectionWith (,) (varType prob) (varBounds prob))) $ \(v, (vt, bounds)) -> do
+      let val = eval tol sol v
+      case vt of
+        ContinuousVariable -> return ()
+        SemiContinuousVariable -> return ()
+        IntegerVariable -> guard $ isIntegral tol val
+        SemiIntegerVariable -> guard $ isIntegral tol val
+      case vt of
+        ContinuousVariable -> guard $ isInBounds tol bounds val
+        IntegerVariable -> guard $ isInBounds tol bounds val
+        SemiIntegerVariable -> guard $ isInBounds tol (0,0) val || isInBounds tol bounds val
+        SemiContinuousVariable -> guard $ isInBounds tol (0,0) val || isInBounds tol bounds val
+    forM_ (constraints prob) $ \constr -> do
+      guard $ eval tol sol constr
+    forM_ (sosConstraints prob) $ \constr -> do
+      guard $ eval tol sol constr
+    return $ eval tol sol (objectiveFunction prob)
+
+isIntegral :: RealFrac r => Tol r -> r -> Bool
+isIntegral tol x = abs (x - fromIntegral (floor (x + 0.5) :: Integer)) <= integralityTol tol
+
+isInBounds :: (Num r, Ord r) => Tol r -> Bounds r -> r -> Bool
+isInBounds tol (lb, ub) x =
+  lb - Finite (feasibilityTol tol) <= Finite x &&
+  Finite x <= ub + Finite (feasibilityTol tol)
 
 -- ---------------------------------------------------------------------------
 
