@@ -11,6 +11,7 @@ import Algebra.Lattice
 #endif
 import Data.Maybe
 import qualified Data.Map as Map
+import Test.QuickCheck.Instances.Text ()
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
@@ -24,6 +25,19 @@ import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
 import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
 import qualified Numeric.Optimization.MIP.Solution.Printemps as PrintempsSol
 import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
+
+case_var_show :: Assertion
+case_var_show = show (MIP.Var "x") @?= show ("x" :: String)
+
+prop_var_name :: Property
+prop_var_name =
+  forAll arbitrary $ \x -> do
+    MIP.varName (MIP.Var x) === x
+
+prop_var_compare :: Property
+prop_var_compare =
+  forAll arbitrary $ \(x1, x2) -> do
+    compare (MIP.Var x1) (MIP.Var x2) === compare x1 x2
 
 prop_status_refl :: Property
 prop_status_refl = forAll arbitrary $ \(x :: MIP.Status) -> do
