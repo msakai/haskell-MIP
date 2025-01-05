@@ -469,6 +469,9 @@ instance Variables (Expr c) where
 instance Variables (Term c) where
   vars (Term _ xs) = Set.fromList xs
 
+instance Variables Var where
+  vars v = Set.singleton v
+
 instance Variables (ObjectiveFunction c) where
   vars ObjectiveFunction{ objExpr = e } = vars e
 
