@@ -43,7 +43,6 @@ import Control.Monad.Writer
 import Control.Monad.ST
 import Data.Char
 import Data.Default.Class
-import Data.Interned
 import Data.List
 import Data.Maybe
 import Data.Scientific (Scientific)
@@ -462,7 +461,7 @@ render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip = Right $ execM $ render' $ normalize mip
 
 writeVar :: MIP.Var -> M ()
-writeVar v = writeString $ unintern v
+writeVar (MIP.Var v) = writeString v
 
 render' :: MIP.Problem Scientific -> M ()
 render' mip = do
@@ -627,7 +626,7 @@ renderBoundExpr MIP.NegInf = writeString "-inf"
 renderBoundExpr MIP.PosInf = writeString "+inf"
 
 renderVariableList :: [MIP.Var] -> M ()
-renderVariableList vs = fill 80 (map unintern vs) >> writeChar '\n'
+renderVariableList vs = fill 80 (map MIP.varName vs) >> writeChar '\n'
 
 fill :: Int -> [T.Text] -> M ()
 fill width str = go str 0

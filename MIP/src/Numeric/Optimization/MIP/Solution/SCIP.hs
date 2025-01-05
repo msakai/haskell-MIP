@@ -21,7 +21,6 @@ module Numeric.Optimization.MIP.Solution.SCIP
 import Prelude hiding (readFile, writeFile)
 import Control.Monad (foldM)
 import Control.Monad.Except
-import Data.Interned (intern)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
@@ -58,7 +57,7 @@ parse' (t1:t2:ts) = do
     let f :: [(MIP.Var, Scientific)] -> TL.Text -> Either String [(MIP.Var, Scientific)]
         f vs t =
           case TL.words t of
-            (w1:w2:_) -> return $ (intern (TL.toStrict w1), read (TL.unpack w2)) : vs
+            (w1:w2:_) -> return $ (MIP.Var (TL.toStrict w1), read (TL.unpack w2)) : vs
             [] -> return $ vs
             _ -> throwError ("Numeric.Optimization.MIP.Solution.SCIP: invalid line " ++ show t)
     vs <- foldM f [] ts

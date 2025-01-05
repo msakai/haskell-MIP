@@ -22,7 +22,6 @@ import Control.Exception
 import Control.Monad
 import qualified Data.ByteString as B
 import Data.ByteString.Encoding (encode, localeEncoding)
-import Data.Interned (unintern)
 import qualified Data.Map.Strict as Map
 import Data.Scientific (Scientific, fromFloatDigits, toRealFloat)
 import qualified Data.Set as Set
@@ -70,7 +69,7 @@ instance IsSolver GLPK IO where
       _ <- Raw.glp_add_cols prob' $ fromIntegral $ Map.size $ MIP.varType prob
       forM_ (Map.toList varToCol) $ \(v, col) -> do
         let (lb, ub) = MIP.getBounds prob v
-        useTextAsCString (unintern v) (Raw.glp_set_col_name prob' col)
+        useTextAsCString (MIP.varName v) (Raw.glp_set_col_name prob' col)
         Raw.glp_set_col_kind prob' col $
           case MIP.getVarType prob v of
             MIP.SemiContinuousVariable -> error "GLPK does not support semi-continuous variables"

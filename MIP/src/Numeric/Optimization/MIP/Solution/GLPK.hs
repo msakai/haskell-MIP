@@ -19,7 +19,6 @@ module Numeric.Optimization.MIP.Solution.GLPK
   ) where
 
 import Prelude hiding (readFile, writeFile)
-import Data.Interned (intern)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
@@ -79,8 +78,8 @@ parseColumns (l1:l2:ls)
     f ret ("":ls2) = (Map.fromList ret, ls2)
     f ret (l:ls2) =
       case ws of
-        (_no : col : "*" : activity : _) -> f ((intern (TL.toStrict col), read (TL.unpack activity)) : ret) ls3
-        (_no : col : activity : _) -> f ((intern (TL.toStrict col), read (TL.unpack activity)) : ret) ls3
+        (_no : col : "*" : activity : _) -> f ((MIP.Var (TL.toStrict col), read (TL.unpack activity)) : ret) ls3
+        (_no : col : activity : _) -> f ((MIP.Var (TL.toStrict col), read (TL.unpack activity)) : ret) ls3
         _ -> error "parse error"
       where
         (ws,ls3) =
