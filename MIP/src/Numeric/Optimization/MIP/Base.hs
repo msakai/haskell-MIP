@@ -101,6 +101,7 @@ import Algebra.PartialOrd
 import Control.Arrow ((***))
 import Control.Monad
 import Data.Default.Class
+import Data.Hashable
 import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -178,6 +179,13 @@ instance Ord Var where
 
 instance Show Var where
   showsPrec d (Var x) = showsPrec d x
+
+instance Hashable Var where
+#if MIN_VERSION_intern(0,9,3)
+  hashWithSalt salt (Var' x) = hashWithSalt salt x
+#else
+  hashWithSalt salt (Var' x) = hashWithSalt salt (internedTextId x)
+#endif
 
 -- | Variable's name
 varName :: Var -> T.Text
@@ -572,6 +580,9 @@ instance Variables (Expr c) where
 
 instance Variables (Term c) where
   vars (Term _ xs) = Set.fromList xs
+
+instance Variables Var where
+  vars v = Set.singleton v
 
 instance Variables (ObjectiveFunction c) where
   vars ObjectiveFunction{ objExpr = e } = vars e

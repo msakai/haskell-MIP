@@ -103,7 +103,7 @@ parser = do
     strippedLine p = stripped p <* eol
 
     ident :: m MIP.Var
-    ident = MIP.toVar <$> some (satisfy (not . isSpace)) <?> "identifier"
+    ident = fromString <$> some (satisfy (not . isSpace)) <?> "identifier"
 
 parse :: TL.Text -> Either (ParseError TL.Text) (MIP.Solution Scientific)
 parse = Megaparsec.parse parser "<string>"
