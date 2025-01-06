@@ -126,7 +126,7 @@ ident = tok $ do
     syms2 = '.' : syms1
 
 variable :: C e s m => m MIP.Var
-variable = liftM MIP.toVar ident
+variable = liftM fromString ident
 
 label :: C e s m => m MIP.Label
 label = do
@@ -561,13 +561,13 @@ renderExpr isObj e = fill 80 (ts1 ++ ts2)
 
     f :: MIP.Term Scientific -> T.Text
     f (MIP.Term c [])  = showConstTerm c
-    f (MIP.Term c [v]) = showCoeff c <> fromString (MIP.fromVar v)
+    f (MIP.Term c [v]) = showCoeff c <> MIP.varName v
     f _ = error "should not happen"
 
     g :: MIP.Term Scientific -> T.Text
     g (MIP.Term c vs) =
       (if isObj then showCoeff (2*c) else showCoeff c) <>
-      mconcat (intersperse " * " (map (fromString . MIP.fromVar) vs))
+      mconcat (intersperse " * " (map MIP.varName vs))
 
 showValue :: Scientific -> T.Text
 showValue = fromString . show
@@ -664,7 +664,7 @@ removeRangeConstraints prob = runST $ do
   let gensym = do
         vs <- readSTRef vsRef
         let loop !c = do
-              let v = MIP.toVar ("~r_" ++ show c)
+              let v = fromString ("~r_" ++ show c)
               if v `Set.member` vs then
                 loop (c+1)
               else do
@@ -706,7 +706,7 @@ removeEmptyExpr prob =
   where
     obj = MIP.objectiveFunction prob
 
-    convertExpr (MIP.Expr []) = MIP.Expr [MIP.Term 0 [MIP.toVar "x0"]]
+    convertExpr (MIP.Expr []) = MIP.Expr [MIP.Term 0 [fromString "x0"]]
     convertExpr e = e
 
     convertConstr constr =
