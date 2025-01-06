@@ -80,6 +80,119 @@ prop_status_meet_leq =
 instance Arbitrary MIP.Status where
   arbitrary = arbitraryBoundedEnum
 
+case_eval_expr :: Assertion
+case_eval_expr = do
+  MIP.eval MIP.def sol (MIP.varExpr "x" + 2 * MIP.varExpr "y" :: MIP.Expr Rational) @?= 8
+  where
+    sol :: Map.Map MIP.Var Rational
+    sol = Map.fromList [("x", 2), ("y", 3)]
+
+case_eval_constraint :: Assertion
+case_eval_constraint = do
+  let constr1 = MIP.varExpr "x" MIP..<=. MIP.constExpr (0 :: Double)
+  MIP.eval MIP.def (Map.singleton "x" (-1 :: Double)) constr1 @?= True
+  MIP.eval MIP.def (Map.singleton "x" (0 :: Double)) constr1 @?= True
+  MIP.eval MIP.def (Map.singleton "x" (1e-10 :: Double)) constr1 @?= True
+  MIP.eval MIP.def (Map.singleton "x" (1 :: Double)) constr1 @?= False
+
+  let constr2 :: MIP.Constraint Double
+      constr2 = MIP.def{ MIP.constrExpr = MIP.varExpr "x", MIP.constrLB = MIP.NegInf, MIP.constrUB = MIP.PosInf }
+  MIP.eval MIP.def (Map.singleton "x" (0 :: Double)) constr2 @?= True
+  MIP.eval MIP.def (Map.singleton "x" (1 :: Double)) constr2 @?= True
+
+  let constr3 :: MIP.Constraint Double
+      constr3 = MIP.def{ MIP.constrIndicator = Just ("y", 0), MIP.constrExpr = MIP.varExpr "x", MIP.constrLB = MIP.Finite 0, MIP.constrUB = MIP.Finite 1 }
+  MIP.eval MIP.def (Map.fromList [("x", 0 :: Double), ("y", 0)]) constr3 @?= True
+  MIP.eval MIP.def (Map.fromList [("x", 2 :: Double), ("y", 0)]) constr3 @?= False
+  MIP.eval MIP.def (Map.fromList [("x", 2 :: Double), ("y", 1)]) constr3 @?= True
+
+case_eval_sos_constraint :: Assertion
+case_eval_sos_constraint = do
+  let constr1 :: MIP.SOSConstraint Double
+      constr1 =
+        MIP.SOSConstraint
+        { MIP.sosLabel = Nothing
+        , MIP.sosType = MIP.S1
+        , MIP.sosBody = [("x1", 1), ("x2", 2), ("x3", 3)]
+        }
+  MIP.eval MIP.def (Map.fromList [("x1", 0 :: Double), ("x2", 0), ("x3", 0)]) constr1 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 0), ("x3", 0)]) constr1 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 1), ("x3", 0)]) constr1 @?= False
+
+  let constr2 = constr1{ MIP.sosType = MIP.S2 }
+  MIP.eval MIP.def (Map.fromList [("x1", 0 :: Double), ("x2", 0), ("x3", 0)]) constr2 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 0), ("x3", 0)]) constr2 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 1), ("x3", 0)]) constr2 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 0 :: Double), ("x2", 1), ("x3", 1)]) constr2 @?= True
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 0), ("x3", 1)]) constr2 @?= False
+  MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 1), ("x3", 1)]) constr2 @?= False
+
+case_eval_continuous_variable :: Assertion
+case_eval_continuous_variable = do
+  MIP.eval MIP.def (Map.singleton "x" (0 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (1 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (1.5 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (2 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (3 :: Double)) prob @?= Nothing
+  where
+    prob :: MIP.Problem Double
+    prob =
+      MIP.def
+      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
+      , MIP.varType = Map.fromList [("x", MIP.ContinuousVariable)]
+      }
+
+case_eval_semi_continuous_variable :: Assertion
+case_eval_semi_continuous_variable = do
+  MIP.eval MIP.def (Map.singleton "x" (0 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (0 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (0.5 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (1 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (1.5 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (2 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (3 :: Double)) prob @?= Nothing
+  where
+    prob :: MIP.Problem Double
+    prob =
+      MIP.def
+      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
+      , MIP.varType = Map.fromList [("x", MIP.SemiContinuousVariable)]
+      }
+
+case_eval_integer_variable :: Assertion
+case_eval_integer_variable = do
+  MIP.eval MIP.def (Map.singleton "x" (0 - 1e-10 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (0 + 1e-10 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (0.5 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (1 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (1.5 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (2 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (3 :: Double)) prob @?= Nothing
+  where
+    prob :: MIP.Problem Double
+    prob =
+      MIP.def
+      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
+      , MIP.varType = Map.fromList [("x", MIP.IntegerVariable)]
+      }
+
+case_eval_semi_integer_variable :: Assertion
+case_eval_semi_integer_variable = do
+  MIP.eval MIP.def (Map.singleton "x" (0 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (0 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (0.5 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (1 - 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (1.5 :: Double)) prob @?= Nothing
+  MIP.eval MIP.def (Map.singleton "x" (2 + 1e-10 :: Double)) prob @?= Just 0
+  MIP.eval MIP.def (Map.singleton "x" (3 :: Double)) prob @?= Nothing
+  where
+    prob :: MIP.Problem Double
+    prob =
+      MIP.def
+      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
+      , MIP.varType = Map.fromList [("x", MIP.SemiIntegerVariable)]
+      }
+
 case_CBCSol :: Assertion
 case_CBCSol = do
   sol <- CBCSol.readFile "samples/lp/test-solution-cbc.txt"
