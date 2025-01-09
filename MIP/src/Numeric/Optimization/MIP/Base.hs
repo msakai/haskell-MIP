@@ -477,6 +477,7 @@ instance Fractional r => Default (Tol r) where
     , optimalityTol = 1e-6
     }
 
+-- | 'Tol' value with all tolerances are zero
 zeroTol :: Fractional r => Tol r
 zeroTol =
   Tol
@@ -486,7 +487,10 @@ zeroTol =
   }
 
 class Eval r a where
+  -- | Result type of 'eval'
   type Evaluated r a
+
+  -- | Evaluate a value of type @a@ under given assignments and the tolerance
   eval :: Tol r -> Map Var r -> a -> Evaluated r a
 
 instance Num r => Eval r Var where
@@ -614,7 +618,11 @@ semiIntegerVariables mip = Map.keysSet $ Map.filter (SemiIntegerVariable ==) (va
 data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
+    -- ^ Text encoding used for file input/output
   , optMPSWriteObjSense :: WriteSetting
+    -- ^ The original MPS file format does not have information about the direction of the objective function.
+    -- The @OBJSENSE@ section is added as an extention, but not all solvers support it.
+    -- This option controls whether the @OBJSENSE@ sections are output.
   } deriving (Show)
 
 instance Default FileOptions where
