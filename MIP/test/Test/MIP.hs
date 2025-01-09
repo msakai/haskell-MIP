@@ -11,6 +11,9 @@ import Algebra.Lattice
 #endif
 import Data.Maybe
 import qualified Data.Map as Map
+import System.FilePath ((</>))
+import System.IO (utf8)
+import System.IO.Temp
 import Test.QuickCheck.Instances.Text ()
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -192,6 +195,34 @@ case_eval_semi_integer_variable = do
       { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
       , MIP.varType = Map.fromList [("x", MIP.SemiIntegerVariable)]
       }
+
+case_file_io_lp :: Assertion
+case_file_io_lp = do
+  let opt = MIP.def{ MIP.optFileEncoding = Just utf8 }
+  prob <- MIP.readFile opt "samples/lp/test.lp"
+  withSystemTempDirectory "MIP" $ \dir -> do
+    MIP.writeFile opt (dir </> "test.lp") prob
+    prob2 <- MIP.readFile opt (dir </> "test.lp")
+    prob2 @?= prob
+#ifdef WITH_ZLIB
+    MIP.writeFile opt (dir </> "test.lp.gz") prob
+    prob3 <- MIP.readFile opt (dir </> "test.lp.gz")
+    prob3 @?= prob
+#endif
+
+case_file_io_mps :: Assertion
+case_file_io_mps = do
+  let opt = MIP.def{ MIP.optFileEncoding = Just utf8 }
+  prob <- MIP.readFile opt "samples/lp/test.lp"
+  withSystemTempDirectory "MIP" $ \dir -> do
+    MIP.writeFile opt (dir </> "test.mps") prob
+    prob2 <- MIP.readFile opt (dir </> "test.mps")
+    prob2 @?= prob
+#ifdef WITH_ZLIB
+    MIP.writeFile opt (dir </> "test.mps.gz") prob
+    prob3 <- MIP.readFile opt (dir </> "test.mps.gz")
+    prob3 @?= prob
+#endif
 
 case_CBCSol :: Assertion
 case_CBCSol = do
