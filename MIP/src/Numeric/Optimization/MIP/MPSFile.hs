@@ -57,7 +57,7 @@ import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.IO as TLIO
 import System.IO
 import Text.Megaparsec hiding  (ParseError)
-import Text.Megaparsec.Char hiding (string', newline)
+import Text.Megaparsec.Char hiding (string', eol)
 import qualified Text.Megaparsec.Char as P
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 
@@ -121,20 +121,20 @@ spaces1' = skipSome space'
 commentline :: C e s m => m ()
 commentline = do
   _ <- char '*'
-  _ <- manyTill anyChar P.newline
+  _ <- manyTill anyChar P.eol
   return ()
 
-newline' :: C e s m => m ()
-newline' = do
+eol' :: C e s m => m ()
+eol' = do
   spaces'
-  _ <- P.newline
+  _ <- P.eol
   skipMany commentline
   return ()
 
 tok :: C e s m => m a -> m a
 tok p = do
   x <- p
-  msum [eof, lookAhead (char '\n' >> return ()), spaces1']
+  msum [eof, lookAhead (P.eol >> return ()), spaces1']
   return x
 
 row :: C e s m => m Row
@@ -144,10 +144,10 @@ column :: C e s m => m Column
 column = liftM MIP.Var $ ident
 
 ident :: C e s m => m T.Text
-ident = liftM fromString $ tok $ some $ noneOf [' ', '\t', '\n']
+ident = liftM fromString $ tok $ some $ noneOf [' ', '\t', '\r', '\n']
 
 stringLn :: C e s m => String -> m ()
-stringLn s = string (fromString s) >> newline'
+stringLn s = string (fromString s) >> eol'
 
 number :: forall e s m. C e s m => m Scientific
 number = tok $ Lexer.signed (return ()) Lexer.scientific
@@ -347,7 +347,7 @@ nameSection = do
   n <- optional $ try $ do
     spaces1'
     ident
-  newline'
+  eol'
   return n
 
 objSenseSection :: C e s m => m OptDir
@@ -363,7 +363,7 @@ objNameSection = do
   try $ stringLn "OBJNAME"
   spaces1'
   name <- ident
-  newline'
+  eol'
   return name
 
 rowsSection :: C e s m => m [(Maybe MIP.RelOp, Row)]
@@ -392,7 +392,7 @@ rowsBody = many $ do
         ]
   spaces1'
   name <- row
-  newline'
+  eol'
   return (op, name)
 
 colsSection :: forall e s m. C e s m => m (Map Column (Map Row Scientific), Set Column)
@@ -421,7 +421,7 @@ colsSection = do
       spaces1'
       b <-  (try (string "'INTORG'") >> return True)
         <|> (string "'INTEND'" >> return False)
-      newline'
+      eol'
       return b
 
     entry :: T.Text -> m (Column, Map Row Scientific)
@@ -429,7 +429,7 @@ colsSection = do
       let col = MIP.Var x
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing -> return (col, rv1)
         Just rv2 ->  return (col, Map.union rv1 rv2)
@@ -450,7 +450,7 @@ rhsSection = do
       _name <- ident
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing  -> return rv1
         Just rv2 -> return $ Map.union rv1 rv2
@@ -465,7 +465,7 @@ rangesSection = do
       _name <- ident
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing  -> return rv1
         Just rv2 -> return $ Map.union rv1 rv2
@@ -483,7 +483,7 @@ boundsSection = do
       val   <- if typ `elem` [FR, BV, MI, PL]
                then return 0
                else number
-      newline'
+      eol'
       return (typ, col, val)
 
 boundType :: C e s m => m BoundType
@@ -501,7 +501,7 @@ sosSection = do
           <|> (string "S2" >> return MIP.S2)
       spaces1'
       name <- ident
-      newline'
+      eol'
       xs <- many (try identAndVal)
       return $ MIP.SOSConstraint{ MIP.sosLabel = Just name, MIP.sosType = typ, MIP.sosBody = xs }
 
@@ -510,7 +510,7 @@ sosSection = do
       spaces1'
       col <- column
       val <- number
-      newline'
+      eol'
       return (col, val)
 
 quadObjSection :: C e s m => m [MIP.Term Scientific]
@@ -523,7 +523,7 @@ quadObjSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term (if col1 /= col2 then val else val / 2) [col1, col2]
 
 qMatrixSection :: C e s m => m [MIP.Term Scientific]
@@ -536,7 +536,7 @@ qMatrixSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term (val / 2) [col1, col2]
 
 qcMatrixSection :: C e s m => m (Row, [MIP.Term Scientific])
@@ -544,7 +544,7 @@ qcMatrixSection = do
   try $ string "QCMATRIX"
   spaces1'
   r <- row
-  newline'
+  eol'
   xs <- many entry
   return (r, xs)
   where
@@ -553,7 +553,7 @@ qcMatrixSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term val [col1, col2]
 
 indicatorsSection :: C e s m => m (Map Row (Column, Scientific))
@@ -568,7 +568,7 @@ indicatorsSection = do
       r <- row
       var <- column
       val <- number
-      newline'
+      eol'
       return (r, (var, val))
 
 -- ---------------------------------------------------------------------------

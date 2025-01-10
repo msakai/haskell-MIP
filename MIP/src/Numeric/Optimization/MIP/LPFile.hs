@@ -106,7 +106,7 @@ sep = skipMany ((comment >> return ()) <|> (spaceChar >> return ()))
 comment :: C e s m => m ()
 comment = do
   char '\\'
-  skipManyTill anyChar (try newline)
+  skipManyTill anyChar (try eol)
 
 tok :: C e s m => m a -> m a
 tok p = do
@@ -153,7 +153,7 @@ parser = do
   name <- optional $ try $ do
     space
     string' "\\* Problem: "
-    liftM fromString $ manyTill anyChar (try (string " *\\\n"))
+    liftM fromString $ manyTill anyChar (try (string " *\\" >> eol))
   sep
   obj <- problem
 
