@@ -273,7 +273,7 @@ indicator :: C e s m => m (MIP.Var, Scientific)
 indicator = do
   var <- variable
   tok (char '=')
-  val <- tok ((char '0' >> return 0) <|> (char '1' >> return 1))
+  val <- number  -- numbers other than 0 or 1 should be error?
   tok $ string "->"
   return (var, val)
 
