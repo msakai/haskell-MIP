@@ -21,6 +21,8 @@ case_quadobj2 = checkFile "samples/mps/quadobj2.mps"
 case_ranges   = checkFile "samples/mps/ranges.mps"
 case_sos      = checkFile "samples/mps/sos.mps"
 case_sc       = checkFile "samples/mps/sc.mps"
+case_semicont = checkFile "samples/mps/test-semicont.mps"
+case_semiint  = checkFile "samples/mps/test-semiint.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
