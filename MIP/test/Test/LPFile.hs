@@ -49,7 +49,10 @@ checkFile fname = do
   lp <- parseFile def fname
   case render def lp of
     Left err -> assertFailure ("render failure: " ++ err)
-    Right _ -> return ()
+    Right str -> -- parseString def fname str @?= Right lp
+      case parseString def fname str of
+        Left err -> print str >> undefined
+        Right _ -> return ()
 
 checkString :: String -> String -> Assertion
 checkString name str = do
@@ -58,7 +61,7 @@ checkString name str = do
     Right lp ->
       case render def lp of
         Left err -> assertFailure ("render failure: " ++ err)
-        Right _ -> return ()
+        Right str -> parseString def name str @?= Right lp
 
 ------------------------------------------------------------------------
 -- Test harness

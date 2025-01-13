@@ -3,6 +3,7 @@ module Test.MPSFile (mpsTestGroup) where
 
 import Control.Monad
 import Data.Default.Class
+import Data.Either
 import Data.List
 import Data.Maybe
 import Test.Tasty
@@ -53,14 +54,19 @@ testdata = unlines
 
 checkFile :: FilePath -> Assertion
 checkFile fname = do
-  _ <- parseFile def fname
-  return ()
+  lp <- parseFile def fname
+  case render def lp of
+    Left err -> assertFailure ("render failure: " ++ err)
+    Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def fname str
 
 checkString :: String -> String -> Assertion
 checkString name str = do
   case parseString def name str of
     Left err -> assertFailure (show err)
-    Right lp -> return ()
+    Right lp ->
+      case render def lp of
+        Left err -> assertFailure ("render failure: " ++ err)
+        Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def name str
 
 ------------------------------------------------------------------------
 -- Test harness
