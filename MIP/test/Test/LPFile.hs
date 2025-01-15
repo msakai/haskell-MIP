@@ -13,6 +13,7 @@ import Numeric.Optimization.MIP.LPFile
 
 case_testdata       = checkString "testdata" testdata
 case_test_indicator = checkFile "samples/lp/test-indicator.lp"
+case_test_problem_name = checkFile "samples/lp/test-problem-name.lp"
 case_test_qcp       = checkFile "samples/lp/test-qcp.lp"
 case_test_qcp2      = checkFile "samples/lp/test-qcp2.lp"
 case_test_qp        = checkFile "samples/lp/test-qp.lp"
