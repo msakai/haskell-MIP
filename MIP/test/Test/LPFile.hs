@@ -12,6 +12,8 @@ import Test.Tasty.TH
 import Numeric.Optimization.MIP.LPFile
 
 case_testdata       = checkString "testdata" testdata
+case_test_bounds_free = checkFile "samples/lp/test-bounds-free.lp"
+case_test_bounds_fixed = checkFile "samples/lp/test-bounds-fixed.lp"
 case_test_indicator = checkFile "samples/lp/test-indicator.lp"
 case_test_problem_name = checkFile "samples/lp/test-problem-name.lp"
 case_test_qcp       = checkFile "samples/lp/test-qcp.lp"
