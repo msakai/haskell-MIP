@@ -23,7 +23,8 @@ case_ranges   = checkFile "samples/mps/ranges.mps"
 case_sos      = checkFile "samples/mps/sos.mps"
 case_sc       = checkFile "samples/mps/sc.mps"
 case_semicont = checkFile "samples/mps/test-semicont.mps"
-case_semiint  = checkFile "samples/mps/test-semiint.mps"
+case_semiint_sc = checkFile "samples/mps/test-semiint-sc.mps"
+case_semiint_si = checkFile "samples/mps/test-semiint-si.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
