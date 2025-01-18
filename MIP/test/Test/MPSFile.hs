@@ -31,6 +31,7 @@ case_bounds_MI = checkFile "samples/mps/test-bounds-mi.mps"
 case_bounds_PL = checkFile "samples/mps/test-bounds-pl.mps"
 case_bounds_BV = checkFile "samples/mps/test-bounds-bv.mps"
 case_implicit_bv = checkFile "samples/mps/test-implicit-bv.mps"
+case_negative_upper_bound = checkFile "samples/mps/test-negative-upper-bound.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
