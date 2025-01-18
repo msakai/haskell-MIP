@@ -22,6 +22,7 @@ case_test_qp        = checkFile "samples/lp/test-qp.lp"
 case_test_semicont  = checkFile "samples/lp/test-semicont.lp"
 case_test_semiint   = checkFile "samples/lp/test-semiint.lp"
 case_test_sos       = checkFile "samples/lp/test-sos.lp"
+case_test_sos2      = checkFile "samples/lp/test-sos2.lp"
 case_empty_obj_1    = checkFile "samples/lp/empty_obj_1.lp"
 case_empty_obj_2    = checkFile "samples/lp/empty_obj_2.lp"
 
