@@ -23,6 +23,8 @@ case_test_semicont  = checkFile "samples/lp/test-semicont.lp"
 case_test_semiint   = checkFile "samples/lp/test-semiint.lp"
 case_test_sos       = checkFile "samples/lp/test-sos.lp"
 case_test_sos2      = checkFile "samples/lp/test-sos2.lp"
+case_test_lazy_constraints = checkFile "samples/lp/test-lazy-constraints.lp"
+case_test_user_cuts = checkFile "samples/lp/test-user-cuts.lp"
 case_empty_obj_1    = checkFile "samples/lp/empty_obj_1.lp"
 case_empty_obj_2    = checkFile "samples/lp/empty_obj_2.lp"
 

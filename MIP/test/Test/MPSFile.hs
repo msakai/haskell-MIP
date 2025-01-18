@@ -34,6 +34,8 @@ case_bounds_BV = checkFile "samples/mps/test-bounds-bv.mps"
 case_implicit_bv = checkFile "samples/mps/test-implicit-bv.mps"
 case_negative_upper_bound = checkFile "samples/mps/test-negative-upper-bound.mps"
 case_negative_upper_qcp = checkFile "samples/mps/test-qcp.mps"
+case_lazy_constraints = checkFile "samples/mps/test-lazy-constraints.mps"
+case_user_cuts = checkFile "samples/mps/test-user-cuts.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
