@@ -27,6 +27,9 @@ case_semiint_sc = checkFile "samples/mps/test-semiint-sc.mps"
 case_semiint_si = checkFile "samples/mps/test-semiint-si.mps"
 case_bounds_fixed = checkFile "samples/mps/test-bounds-fixed.mps"
 case_bounds_free = checkFile "samples/mps/test-bounds-free.mps"
+case_bounds_MI = checkFile "samples/mps/test-bounds-mi.mps"
+case_bounds_PL = checkFile "samples/mps/test-bounds-pl.mps"
+case_bounds_BV = checkFile "samples/mps/test-bounds-bv.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
