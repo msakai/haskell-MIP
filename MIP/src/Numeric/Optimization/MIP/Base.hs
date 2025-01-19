@@ -202,13 +202,19 @@ intersectBounds (lb1,ub1) (lb2,ub2) = (max lb1 lb2, min ub1 ub2)
 
 -- | expressions
 newtype Expr c = Expr' (Seq (Term c))
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 pattern Expr :: [Term c] -> Expr c
 pattern Expr ts <- Expr' (toList -> ts) where
   Expr ts = Expr' (Seq.fromList ts)
 
 {-# COMPLETE Expr #-}
+
+instance Show c => Show (Expr c) where
+  showsPrec d (Expr ts) = showParen (d > app_prec) $
+    showString "Expr " . showsPrec (app_prec+1) ts
+    where
+      app_prec = 10
 
 varExpr :: Num c => Var -> Expr c
 varExpr v = Expr' $ Seq.singleton $ Term 1 [v]
