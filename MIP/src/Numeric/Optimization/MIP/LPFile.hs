@@ -45,7 +45,7 @@ import Data.Char
 import Data.Default.Class
 import Data.List
 import Data.Maybe
-import Data.Scientific (Scientific)
+import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -56,6 +56,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
+import qualified Data.Text.Lazy.Builder.Int as B
 import qualified Data.Text.Lazy.Builder.Scientific as B
 import qualified Data.Text.Lazy.IO as TLIO
 import Data.OptDir
@@ -106,7 +107,7 @@ sep = skipMany ((comment >> return ()) <|> (spaceChar >> return ()))
 comment :: C e s m => m ()
 comment = do
   char '\\'
-  skipManyTill anyChar (try newline)
+  skipManyTill anyChar (try eol)
 
 tok :: C e s m => m a -> m a
 tok p = do
@@ -153,7 +154,7 @@ parser = do
   name <- optional $ try $ do
     space
     string' "\\* Problem: "
-    liftM fromString $ manyTill anyChar (try (string " *\\\n"))
+    liftM fromString $ manyTill anyChar (try (string " *\\" >> eol))
   sep
   obj <- problem
 
@@ -272,7 +273,7 @@ indicator :: C e s m => m (MIP.Var, Scientific)
 indicator = do
   var <- variable
   tok (char '=')
-  val <- tok ((char '0' >> return 0) <|> (char '1' >> return 1))
+  val <- number  -- numbers other than 0 or 1 should be error?
   tok $ string "->"
   return (var, val)
 
@@ -605,7 +606,10 @@ renderConstraint c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.co
     Just (v,vval) -> do
       writeVar v
       writeString " = "
-      tell $ B.scientificBuilder vval
+      tell $
+        case floatingOrInteger vval of
+          Right (i :: Integer) -> B.decimal i
+          Left (_ :: Double) -> B.scientificBuilder vval  -- should be error?
       writeString " -> "
 
   renderExpr False e

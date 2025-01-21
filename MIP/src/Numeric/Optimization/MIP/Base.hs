@@ -51,7 +51,7 @@ module Numeric.Optimization.MIP.Base
   , semiIntegerVariables
 
   -- * Expressions
-  , Expr (..)
+  , Expr (Expr)
   , varExpr
   , constExpr
   , terms
@@ -101,11 +101,14 @@ import Algebra.PartialOrd
 import Control.Arrow ((***))
 import Control.Monad
 import Data.Default.Class
+import Data.Foldable (toList)
 import Data.Hashable
 import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Ord (comparing)
+import Data.Sequence (Seq)
+import qualified Data.Sequence as Seq
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Interned (intern, unintern)
@@ -258,40 +261,54 @@ intersectBounds (lb1,ub1) (lb2,ub2) = (max lb1 lb2, min ub1 ub2)
 -- | Arithmetic expressions
 --
 -- Essentialy an expression is a sequence of t'Term's.
-newtype Expr c = Expr [Term c]
-  deriving (Eq, Ord, Show)
+newtype Expr c = Expr' (Seq (Term c))
+  deriving (Eq, Ord)
+
+pattern Expr :: [Term c] -> Expr c
+pattern Expr ts <- Expr' (toList -> ts) where
+  Expr ts = Expr' (Seq.fromList ts)
+
+{-# COMPLETE Expr #-}
+
+instance Show c => Show (Expr c) where
+  showsPrec d (Expr ts) = showParen (d > app_prec) $
+    showString "Expr " . showsPrec (app_prec+1) ts
+    where
+      app_prec = 10
 
 -- | Variable expression
 varExpr :: Num c => Var -> Expr c
-varExpr v = Expr [Term 1 [v]]
+varExpr v = Expr' $ Seq.singleton $ Term 1 [v]
 
 -- | Constant expression
 constExpr :: (Eq c, Num c) => c -> Expr c
-constExpr 0 = Expr []
-constExpr c = Expr [Term c []]
+constExpr 0 = Expr' Seq.empty
+constExpr c = Expr' $ Seq.singleton $ Term c []
 
 -- | Terms of an expression
 terms :: Expr c -> [Term c]
 terms (Expr ts) = ts
 
 instance Num c => Num (Expr c) where
-  Expr e1 + Expr e2 = Expr (e1 ++ e2)
+  Expr' e1 + Expr' e2 = Expr' (e1 <> e2)
   Expr e1 * Expr e2 = Expr [Term (c1*c2) (vs1 ++ vs2) | Term c1 vs1 <- e1, Term c2 vs2 <- e2]
-  negate (Expr e) = Expr [Term (-c) vs | Term c vs <- e]
+  negate (Expr' e) = Expr' $ fmap (\(Term c vs) -> Term (-c) vs) e
   abs = id
   signum _ = 1
   fromInteger 0 = Expr []
   fromInteger c = Expr [Term (fromInteger c) []]
 
 instance Functor Expr where
-  fmap f (Expr ts) = Expr $ map (fmap f) ts
+  fmap f (Expr' ts) = Expr' $ fmap (fmap f) ts
 
 -- | Split an expression into an expression without constant term and a constant
 splitConst :: Num c => Expr c -> (Expr c, c)
-splitConst e = (e2, c2)
+splitConst (Expr' ts) = (e2, c2)
   where
-    e2 = Expr [t | t@(Term _ (_:_)) <- terms e]
-    c2 = sum [c | Term c [] <- terms e]
+    p (Term _ (_:_)) = True
+    p _ = False
+    e2 = Expr' $ Seq.filter p ts
+    c2 = sum [c | Term c [] <- toList ts]
 
 -- | terms
 data Term c = Term c [Var]

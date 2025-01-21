@@ -12,10 +12,19 @@ import Test.Tasty.TH
 import Numeric.Optimization.MIP.LPFile
 
 case_testdata       = checkString "testdata" testdata
+case_test_bounds_free = checkFile "samples/lp/test-bounds-free.lp"
+case_test_bounds_fixed = checkFile "samples/lp/test-bounds-fixed.lp"
 case_test_indicator = checkFile "samples/lp/test-indicator.lp"
+case_test_problem_name = checkFile "samples/lp/test-problem-name.lp"
 case_test_qcp       = checkFile "samples/lp/test-qcp.lp"
 case_test_qcp2      = checkFile "samples/lp/test-qcp2.lp"
 case_test_qp        = checkFile "samples/lp/test-qp.lp"
+case_test_semicont  = checkFile "samples/lp/test-semicont.lp"
+case_test_semiint   = checkFile "samples/lp/test-semiint.lp"
+case_test_sos       = checkFile "samples/lp/test-sos.lp"
+case_test_sos2      = checkFile "samples/lp/test-sos2.lp"
+case_test_lazy_constraints = checkFile "samples/lp/test-lazy-constraints.lp"
+case_test_user_cuts = checkFile "samples/lp/test-user-cuts.lp"
 case_empty_obj_1    = checkFile "samples/lp/empty_obj_1.lp"
 case_empty_obj_2    = checkFile "samples/lp/empty_obj_2.lp"
 
@@ -46,7 +55,10 @@ checkFile fname = do
   lp <- parseFile def fname
   case render def lp of
     Left err -> assertFailure ("render failure: " ++ err)
-    Right _ -> return ()
+    Right str -> -- parseString def fname str @?= Right lp
+      case parseString def fname str of
+        Left err -> print str >> undefined
+        Right _ -> return ()
 
 checkString :: String -> String -> Assertion
 checkString name str = do
@@ -55,7 +67,7 @@ checkString name str = do
     Right lp ->
       case render def lp of
         Left err -> assertFailure ("render failure: " ++ err)
-        Right _ -> return ()
+        Right str -> parseString def name str @?= Right lp
 
 ------------------------------------------------------------------------
 -- Test harness
