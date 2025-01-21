@@ -120,16 +120,25 @@ infix 4 .<=., .>=., .==.
 
 -- ---------------------------------------------------------------------------
 
--- | Problem
+-- | A problem instance
 data Problem c
   = Problem
   { name :: Maybe T.Text
+    -- ^ Problem name
   , objectiveFunction :: ObjectiveFunction c
+    -- ^ Objective functions of the problem
   , constraints :: [Constraint c]
+    -- ^ Constraints of the problem
+    --
+    -- Indicator constraints and lazy constraints are included in this list.
   , sosConstraints :: [SOSConstraint c]
+    -- ^ Special ordered sets
   , userCuts :: [Constraint c]
+    -- ^ User cuts
   , varType :: Map Var VarType
+    -- ^ Types of variables
   , varBounds :: Map Var (Bounds c)
+    -- ^ Bounds of variables
   }
   deriving (Show, Eq, Ord)
 
@@ -154,12 +163,12 @@ instance Functor Problem where
     , varBounds         = fmap (fmap f *** fmap f) (varBounds prob)
     }
 
--- | label
+-- | Label used for naming various elements of t'Problem'
 type Label = T.Text
 
 -- ---------------------------------------------------------------------------
 
--- | variable
+-- | variables
 newtype Var = Var' InternedText
   deriving Eq
 
@@ -201,11 +210,14 @@ toVar = fromString
 fromVar :: Var -> String
 fromVar (Var s) = T.unpack s
 
+-- | Type of variables
+--
+-- Variables can take values depending on their types and their bounds ('Bounds').
 data VarType
-  = ContinuousVariable
-  | IntegerVariable
-  | SemiContinuousVariable
-  | SemiIntegerVariable
+  = ContinuousVariable     -- ^ can take values from \(\{x \in \mathbb{R} \mid L \le x \le U\}\)
+  | IntegerVariable        -- ^ can take values from \(\{x \in \mathbb{Z} \mid L \le x \le U\}\)
+  | SemiContinuousVariable -- ^ can take values from \(\{0\} \cup \{x \in \mathbb{R} \mid L \le x \le U\}\)
+  | SemiIntegerVariable    -- ^ can take values from \(\{0\} \cup \{x \in \mathbb{Z} \mid L \le x \le U\}\)
   deriving (Eq, Ord, Show)
 
 instance Default VarType where
@@ -237,22 +249,28 @@ defaultUB = PosInf
 getBounds :: Num c => Problem c -> Var -> Bounds c
 getBounds mip v = Map.findWithDefault defaultBounds v (varBounds mip)
 
+-- | Intersection of two 'Bounds'
 intersectBounds :: Ord c => Bounds c -> Bounds c -> Bounds c
 intersectBounds (lb1,ub1) (lb2,ub2) = (max lb1 lb2, min ub1 ub2)
 
 -- ---------------------------------------------------------------------------
 
--- | expressions
+-- | Arithmetic expressions
+--
+-- Essentialy an expression is a sequence of t'Term's.
 newtype Expr c = Expr [Term c]
   deriving (Eq, Ord, Show)
 
+-- | Variable expression
 varExpr :: Num c => Var -> Expr c
 varExpr v = Expr [Term 1 [v]]
 
+-- | Constant expression
 constExpr :: (Eq c, Num c) => c -> Expr c
 constExpr 0 = Expr []
 constExpr c = Expr [Term c []]
 
+-- | Terms of an expression
 terms :: Expr c -> [Term c]
 terms (Expr ts) = ts
 
@@ -268,6 +286,7 @@ instance Num c => Num (Expr c) where
 instance Functor Expr where
   fmap f (Expr ts) = Expr $ map (fmap f) ts
 
+-- | Split an expression into an expression without constant term and a constant
 splitConst :: Num c => Expr c -> (Expr c, c)
 splitConst e = (e2, c2)
   where
@@ -305,14 +324,21 @@ instance Functor ObjectiveFunction where
 
 -- ---------------------------------------------------------------------------
 
--- | constraint
+-- | Constraint
+--
+-- In the most general case, of the form @x = v → L ≤ e ≤ U@.
 data Constraint c
   = Constraint
   { constrLabel     :: Maybe Label
+    -- ^ name of the constraint
   , constrIndicator :: Maybe (Var, c)
+    -- ^ @x = v@ (v is 0 or 1)
   , constrExpr      :: Expr c
+    -- ^ @e@
   , constrLB        :: BoundExpr c
+    -- ^ @L@
   , constrUB        :: BoundExpr c
+    -- ^ @U@
   , constrIsLazy    :: Bool
   }
   deriving (Eq, Ord, Show)
@@ -355,7 +381,10 @@ instance Functor Constraint where
     }
 
 -- | relational operators
-data RelOp = Le | Ge | Eql
+data RelOp
+  = Le  -- ^ (≤)
+  | Ge  -- ^ (≥)
+  | Eql -- ^ (=)
   deriving (Eq, Ord, Enum, Show)
 
 -- ---------------------------------------------------------------------------
@@ -444,8 +473,11 @@ instance MeetSemiLattice Status where
 data Solution r
   = Solution
   { solStatus :: Status
+    -- ^ status
   , solObjectiveValue :: Maybe r
+    -- ^ value of the objective function
   , solVariables :: Map Var r
+    -- ^ variable assignments
   }
   deriving (Eq, Ord, Show)
 
@@ -461,11 +493,17 @@ instance Default (Solution r) where
 
 -- ---------------------------------------------------------------------------
 
+-- | Tolerance for evaluating solutions against t'Problem'.
 data Tol r
   = Tol
   { integralityTol :: r
+    -- ^ If a value of integer variable is within this amount from its nearest
+    -- integer, it is considered feasible.
   , feasibilityTol :: r
+    -- ^ If the amount of violation of constraints is within this amount, it is
+    -- considered feasible.
   , optimalityTol :: r
+    -- ^ Feasiblity tolerance of dual constraints.
   }
 
 -- | Defautl is @1e-6@ for the feasibility and optimality tolerances, and @1e-5@ for the integrality tolerance.
@@ -477,7 +515,7 @@ instance Fractional r => Default (Tol r) where
     , optimalityTol = 1e-6
     }
 
--- | 'Tol' value with all tolerances are zero
+-- | t'Tol' value with all tolerances are zero
 zeroTol :: Fractional r => Tol r
 zeroTol =
   Tol
@@ -486,6 +524,8 @@ zeroTol =
   , optimalityTol = 1e-6
   }
 
+-- | Type class for evaluation various elements of t'Problem' under
+-- the given variable assignments.
 class Eval r a where
   -- | Result type of 'eval'
   type Evaluated r a
@@ -566,6 +606,7 @@ isInBounds tol (lb, ub) x =
 
 -- ---------------------------------------------------------------------------
 
+-- | Type class for types that contain variables.
 class Variables a where
   vars :: a -> Set Var
 
@@ -601,20 +642,25 @@ instance Variables (SOSConstraint c) where
 
 -- ---------------------------------------------------------------------------
 
+-- | Set of variables of a t'Problem'
 variables :: Problem c -> Set Var
 variables mip = Map.keysSet $ varType mip
 
+-- | Set of integer variables of a t'Problem'
 integerVariables :: Problem c -> Set Var
 integerVariables mip = Map.keysSet $ Map.filter (IntegerVariable ==) (varType mip)
 
+-- | Set of semi-continuous variables of a t'Problem'
 semiContinuousVariables :: Problem c -> Set Var
 semiContinuousVariables mip = Map.keysSet $ Map.filter (SemiContinuousVariable ==) (varType mip)
 
+-- | Set of semi-integer variables of a t'Problem'
 semiIntegerVariables :: Problem c -> Set Var
 semiIntegerVariables mip = Map.keysSet $ Map.filter (SemiIntegerVariable ==) (varType mip)
 
 -- ---------------------------------------------------------------------------
 
+-- | Options for reading/writing problem files
 data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
@@ -632,6 +678,7 @@ instance Default FileOptions where
     , optMPSWriteObjSense = WriteIfNotDefault
     }
 
+-- | Options for writing something of not
 data WriteSetting
   = WriteAlways
   | WriteIfNotDefault
