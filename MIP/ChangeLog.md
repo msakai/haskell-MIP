@@ -5,6 +5,7 @@
 * Represent `Expr c` as `Seq (Term c)` instead of `[Term c]`
 * Change `Var` into `newtype`
 * Add `Tol` data type and `Eval` type class
+* Add `continuousVariables :: Problem c -> Set Var`
 * File I/O
   * Allow CRLF in parsers
   * Fix to print the right-hand side of indicators as integers when possible in LP files
