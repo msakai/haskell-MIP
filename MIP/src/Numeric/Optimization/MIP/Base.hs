@@ -46,6 +46,7 @@ module Numeric.Optimization.MIP.Base
 
   -- ** Variable getters
   , variables
+  , continuousVariables
   , integerVariables
   , semiContinuousVariables
   , semiIntegerVariables
@@ -662,6 +663,10 @@ instance Variables (SOSConstraint c) where
 -- | Set of variables of a t'Problem'
 variables :: Problem c -> Set Var
 variables mip = Map.keysSet $ varType mip
+
+-- | Set of continuous variables of a t'Problem'
+continuousVariables :: Problem c -> Set Var
+continuousVariables mip = Map.keysSet $ Map.filter (ContinuousVariable ==) (varType mip)
 
 -- | Set of integer variables of a t'Problem'
 integerVariables :: Problem c -> Set Var
