@@ -322,21 +322,22 @@ parser = do
         , MIP.constraints           = concatMap (f False) rows ++ concatMap (f True) lazycons
         , MIP.sosConstraints        = sos
         , MIP.userCuts              = concatMap (f False) usercuts
-        , MIP.varType               = Map.fromAscList
-            [ ( v
-              , if v `Set.member` sivs then
-                  MIP.SemiIntegerVariable
-                else if v `Set.member` intvs1 && v `Set.member` scvs then
-                  MIP.SemiIntegerVariable
-                else if v `Set.member` intvs1 || v `Set.member` intvs2 then
-                  MIP.IntegerVariable
-                else if v `Set.member` scvs then
-                  MIP.SemiContinuousVariable
-                else
-                  MIP.ContinuousVariable
-              )
-            | v <- Set.toAscList vs ]
-        , MIP.varBounds             = Map.fromAscList [(v, Map.findWithDefault MIP.defaultBounds v bounds) | v <- Set.toAscList vs]
+        , MIP.varDomains            = Map.fromAscList
+            [ (v, (t, bs))
+            | v <- Set.toAscList vs
+            , let t =
+                    if v `Set.member` sivs then
+                      MIP.SemiIntegerVariable
+                    else if v `Set.member` intvs1 && v `Set.member` scvs then
+                      MIP.SemiIntegerVariable
+                    else if v `Set.member` intvs1 || v `Set.member` intvs2 then
+                      MIP.IntegerVariable
+                    else if v `Set.member` scvs then
+                      MIP.SemiContinuousVariable
+                    else
+                      MIP.ContinuousVariable
+            , let bs = Map.findWithDefault MIP.defaultBounds v bounds
+            ]
         }
 
   return mip
@@ -690,7 +691,7 @@ render' opt mip = do
 
   -- BOUNDS section
   writeSectionHeader "BOUNDS"
-  forM_ (Map.toList (MIP.varType mip)) $ \(col, vt) -> do
+  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, _)) -> do
     let (lb,ub) = MIP.getBounds mip col
     case (lb,ub)  of
       (MIP.NegInf, MIP.PosInf) -> do

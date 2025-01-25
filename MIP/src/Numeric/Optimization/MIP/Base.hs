@@ -23,6 +23,8 @@ module Numeric.Optimization.MIP.Base
   (
   -- * The MIP Problem type
     Problem (..)
+  , varType
+  , varBounds
   , Label
 
   -- * Variables
@@ -139,10 +141,7 @@ data Problem c
     -- ^ Special ordered sets
   , userCuts :: [Constraint c]
     -- ^ User cuts
-  , varType :: Map Var VarType
-    -- ^ Types of variables
-  , varBounds :: Map Var (Bounds c)
-    -- ^ Bounds of variables
+  , varDomains :: Map Var (VarType, Bounds c)
   }
   deriving (Show, Eq, Ord)
 
@@ -153,8 +152,7 @@ instance Default (Problem c) where
         , constraints = []
         , sosConstraints = []
         , userCuts = []
-        , varType = Map.empty
-        , varBounds = Map.empty
+        , varDomains = Map.empty
         }
 
 instance Functor Problem where
@@ -164,8 +162,16 @@ instance Functor Problem where
     , constraints       = map (fmap f) (constraints prob)
     , sosConstraints    = map (fmap f) (sosConstraints prob)
     , userCuts          = map (fmap f) (userCuts prob)
-    , varBounds         = fmap (fmap f *** fmap f) (varBounds prob)
+    , varDomains        = fmap (id *** (fmap f *** fmap f)) (varDomains prob)
     }
+
+-- | Types of variables
+varType :: Problem c -> Map Var VarType
+varType = fmap fst . varDomains
+
+-- | Bounds of variables
+varBounds :: Problem c -> Map Var (Bounds c)
+varBounds = fmap snd . varDomains
 
 -- | Label used for naming various elements of t'Problem'
 type Label = T.Text
@@ -596,7 +602,7 @@ instance (Num r, Ord r) => Eval r (SOSConstraint r) where
 instance (RealFrac r) => Eval r (Problem r) where
   type Evaluated r (Problem r) = Maybe r
   eval tol sol prob = do
-    forM_ (Map.toList (Map.intersectionWith (,) (varType prob) (varBounds prob))) $ \(v, (vt, bounds)) -> do
+    forM_ (Map.toList (varDomains prob)) $ \(v, (vt, bounds)) -> do
       let val = eval tol sol v
       case vt of
         ContinuousVariable -> return ()
@@ -662,23 +668,23 @@ instance Variables (SOSConstraint c) where
 
 -- | Set of variables of a t'Problem'
 variables :: Problem c -> Set Var
-variables mip = Map.keysSet $ varType mip
+variables mip = Map.keysSet $ varDomains mip
 
 -- | Set of continuous variables of a t'Problem'
 continuousVariables :: Problem c -> Set Var
-continuousVariables mip = Map.keysSet $ Map.filter (ContinuousVariable ==) (varType mip)
+continuousVariables mip = Map.keysSet $ Map.filter ((ContinuousVariable ==) . fst) (varDomains mip)
 
 -- | Set of integer variables of a t'Problem'
 integerVariables :: Problem c -> Set Var
-integerVariables mip = Map.keysSet $ Map.filter (IntegerVariable ==) (varType mip)
+integerVariables mip = Map.keysSet $ Map.filter ((IntegerVariable ==) . fst) (varDomains mip)
 
 -- | Set of semi-continuous variables of a t'Problem'
 semiContinuousVariables :: Problem c -> Set Var
-semiContinuousVariables mip = Map.keysSet $ Map.filter (SemiContinuousVariable ==) (varType mip)
+semiContinuousVariables mip = Map.keysSet $ Map.filter ((SemiContinuousVariable ==) . fst) (varDomains mip)
 
 -- | Set of semi-integer variables of a t'Problem'
 semiIntegerVariables :: Problem c -> Set Var
-semiIntegerVariables mip = Map.keysSet $ Map.filter (SemiIntegerVariable ==) (varType mip)
+semiIntegerVariables mip = Map.keysSet $ Map.filter ((SemiIntegerVariable ==) . fst) (varDomains mip)
 
 -- ---------------------------------------------------------------------------
 

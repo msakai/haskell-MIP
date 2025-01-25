@@ -2,8 +2,10 @@
 
 ## Unreleased changes
 
-* Represent `Expr c` as `Seq (Term c)` instead of `[Term c]`
-* Change `Var` into `newtype`
+* `Problem` type
+  * Merge `varType` and `varBounds` fields into `varDomains` field 
+  * Represent `Expr c` as `Seq (Term c)` instead of `[Term c]`
+  * Change `Var` into `newtype`
 * Add `Tol` data type and `Eval` type class
 * Add `continuousVariables :: Problem c -> Set Var`
 * File I/O
