@@ -50,6 +50,7 @@ module Numeric.Optimization.MIP.Base
   , variables
   , continuousVariables
   , integerVariables
+  , binaryVariables
   , semiContinuousVariables
   , semiIntegerVariables
 
@@ -695,6 +696,13 @@ continuousVariables mip = Map.keysSet $ Map.filter ((ContinuousVariable ==) . fs
 -- | Set of integer variables of a t'Problem'
 integerVariables :: Problem c -> Set Var
 integerVariables mip = Map.keysSet $ Map.filter ((IntegerVariable ==) . fst) (varDomains mip)
+
+-- | Set of binary variables (integers variables with lower bound 0 and upper bound 1) of a t'Problem'
+binaryVariables :: (Num c, Eq c) => Problem c -> Set Var
+binaryVariables mip = Map.keysSet $ Map.filter p (varDomains mip)
+  where
+    p (IntegerVariable, (Finite 0, Finite 1)) = True
+    p (_, _) = False
 
 -- | Set of semi-continuous variables of a t'Problem'
 semiContinuousVariables :: Problem c -> Set Var
