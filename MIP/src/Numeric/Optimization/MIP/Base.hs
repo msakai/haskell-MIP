@@ -247,7 +247,10 @@ instance Default VarType where
 
 -- | looking up bounds for a variable
 getVarType :: Problem c -> Var -> VarType
-getVarType mip v = Map.findWithDefault def v (varType mip)
+getVarType mip v =
+  case Map.lookup v (varDomains mip) of
+    Just (vt, _) -> vt
+    Nothing -> def
 
 -- | type for representing lower/upper bound of variables
 type BoundExpr c = Extended c
@@ -269,7 +272,10 @@ defaultUB = PosInf
 
 -- | looking up bounds for a variable
 getBounds :: Num c => Problem c -> Var -> Bounds c
-getBounds mip v = Map.findWithDefault defaultBounds v (varBounds mip)
+getBounds mip v =
+  case Map.lookup v (varDomains mip) of
+    Just (_, bs) -> bs
+    Nothing -> defaultBounds
 
 -- | Intersection of two 'Bounds'
 intersectBounds :: Ord c => Bounds c -> Bounds c -> Bounds c
