@@ -166,10 +166,22 @@ instance Functor Problem where
     }
 
 -- | Types of variables
+--
+-- This is equivalent to:
+--
+-- @
+-- 'fmap' 'fst' . 'varDomains'
+-- @
 varType :: Problem c -> Map Var VarType
 varType = fmap fst . varDomains
 
 -- | Bounds of variables
+--
+-- This is equivalent to:
+--
+-- @
+-- 'fmap' 'snd' . 'varDomains'
+-- @
 varBounds :: Problem c -> Map Var (Bounds c)
 varBounds = fmap snd . varDomains
 
