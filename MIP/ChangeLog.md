@@ -4,6 +4,7 @@
 
 * `Problem` type
   * Merge `varType` and `varBounds` fields into `varDomains` field 
+  * Rename `varType` into `varTypes` and deprecate `varType`
   * Represent `Expr c` as `Seq (Term c)` instead of `[Term c]`
   * Change `Var` into `newtype`
 * Add `Tol` data type and `Eval` type class

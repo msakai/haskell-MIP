@@ -23,6 +23,7 @@ module Numeric.Optimization.MIP.Base
   (
   -- * The MIP Problem type
     Problem (..)
+  , varTypes
   , varType
   , varBounds
   , Label
@@ -172,8 +173,15 @@ instance Functor Problem where
 -- @
 -- 'fmap' 'fst' . 'varDomains'
 -- @
+varTypes :: Problem c -> Map Var VarType
+varTypes = fmap fst . varDomains
+
+{-# DEPRECATED varType "Use varTypes instead" #-}
+-- | Types of variables
+--
+-- Deprecated alias of 'varTypes'.
 varType :: Problem c -> Map Var VarType
-varType = fmap fst . varDomains
+varType = varTypes
 
 -- | Bounds of variables
 --
