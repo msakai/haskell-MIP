@@ -66,7 +66,7 @@ instance IsSolver GLPK IO where
         Just name -> useTextAsCString name (Raw.glp_set_prob_name prob')
 
       -- Variables
-      _ <- Raw.glp_add_cols prob' $ fromIntegral $ Map.size $ MIP.varType prob
+      _ <- Raw.glp_add_cols prob' $ fromIntegral $ Map.size $ MIP.varDomains prob
       forM_ (Map.toList varToCol) $ \(v, col) -> do
         let (lb, ub) = MIP.getBounds prob v
         useTextAsCString (MIP.varName v) (Raw.glp_set_col_name prob' col)

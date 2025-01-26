@@ -191,17 +191,18 @@ parser = do
     , MIP.constraints       = [c | Left c <- cs]
     , MIP.userCuts          = [c | Right c <- cs]
     , MIP.sosConstraints    = ss
-    , MIP.varType           = Map.fromAscList
-       [ ( v
-         , if isInt v then
-             if isSemi v then MIP.SemiIntegerVariable
-             else MIP.IntegerVariable
-           else
-             if isSemi v then MIP.SemiContinuousVariable
-             else MIP.ContinuousVariable
-         )
-       | v <- Set.toAscList vs ]
-    , MIP.varBounds         = Map.fromAscList [ (v, Map.findWithDefault MIP.defaultBounds v bnds2) | v <- Set.toAscList vs]
+    , MIP.varDomains        = Map.fromAscList
+       [ (v, (t, bs))
+       | v <- Set.toAscList vs
+       , let t =
+               if isInt v then
+                 if isSemi v then MIP.SemiIntegerVariable
+                 else MIP.IntegerVariable
+               else
+                 if isSemi v then MIP.SemiContinuousVariable
+                 else MIP.ContinuousVariable
+       , let bs = Map.findWithDefault MIP.defaultBounds v bnds2
+       ]
     }
 
 problem :: C e s m => m (MIP.ObjectiveFunction Scientific)
@@ -696,8 +697,7 @@ removeRangeConstraints prob = runST $ do
   return $
     prob
     { MIP.constraints = cs2
-    , MIP.varType = MIP.varType prob `Map.union` Map.fromList [(v, MIP.ContinuousVariable) | (v,_) <- newvs]
-    , MIP.varBounds = MIP.varBounds prob `Map.union` (Map.fromList newvs)
+    , MIP.varDomains = MIP.varDomains prob `Map.union` Map.fromList [(v, (MIP.ContinuousVariable, bs)) | (v,bs) <- newvs]
     }
 
 removeEmptyExpr :: Num r => MIP.Problem r -> MIP.Problem r

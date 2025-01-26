@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Test.MIPSolver (mipSolverTestGroup) where
 
+import Control.Arrow ((***))
 import Control.Monad
 import Data.Default.Class
 import qualified Data.Map as Map
@@ -254,7 +255,7 @@ case_lpSolve_infeasible2 = do
 case_printemps :: Assertion
 case_printemps = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve printemps def prob{ MIP.varType = fmap (const MIP.IntegerVariable) (MIP.varType prob) }
+  sol <- solve printemps def prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
   MIP.solStatus sol @?= MIP.StatusFeasible
   let vs = MIP.solVariables sol
   Map.keysSet vs @?= Set.fromList ["x1", "x2", "x3", "x4"]
@@ -263,7 +264,7 @@ case_printemps = do
 case_printemps_with_time_limit :: Assertion
 case_printemps_with_time_limit = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  _ <- solve printemps def{ solveTimeLimit = Just 1 } prob{ MIP.varType = fmap (const MIP.IntegerVariable) (MIP.varType prob) }
+  _ <- solve printemps def{ solveTimeLimit = Just 1 } prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
   return ()
 
 -- ------------------------------------------------------------------------

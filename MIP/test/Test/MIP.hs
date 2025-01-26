@@ -141,8 +141,7 @@ case_eval_continuous_variable = do
     prob :: MIP.Problem Double
     prob =
       MIP.def
-      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
-      , MIP.varType = Map.fromList [("x", MIP.ContinuousVariable)]
+      { MIP.varDomains = Map.fromList [("x", (MIP.ContinuousVariable, (MIP.Finite 1, MIP.Finite 2)))]
       }
 
 case_eval_semi_continuous_variable :: Assertion
@@ -158,8 +157,7 @@ case_eval_semi_continuous_variable = do
     prob :: MIP.Problem Double
     prob =
       MIP.def
-      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
-      , MIP.varType = Map.fromList [("x", MIP.SemiContinuousVariable)]
+      { MIP.varDomains = Map.fromList [("x", (MIP.SemiContinuousVariable, (MIP.Finite 1, MIP.Finite 2)))]
       }
 
 case_eval_integer_variable :: Assertion
@@ -175,8 +173,7 @@ case_eval_integer_variable = do
     prob :: MIP.Problem Double
     prob =
       MIP.def
-      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
-      , MIP.varType = Map.fromList [("x", MIP.IntegerVariable)]
+      { MIP.varDomains = Map.fromList [("x", (MIP.IntegerVariable, (MIP.Finite 1, MIP.Finite 2)))]
       }
 
 case_eval_semi_integer_variable :: Assertion
@@ -192,8 +189,7 @@ case_eval_semi_integer_variable = do
     prob :: MIP.Problem Double
     prob =
       MIP.def
-      { MIP.varBounds = Map.fromList [("x", (MIP.Finite 1, MIP.Finite 2))]
-      , MIP.varType = Map.fromList [("x", MIP.SemiIntegerVariable)]
+      { MIP.varDomains = Map.fromList [("x", (MIP.SemiIntegerVariable, (MIP.Finite 1, MIP.Finite 2)))]
       }
 
 case_file_io_lp :: Assertion
