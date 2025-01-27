@@ -56,8 +56,8 @@ instance IsSolver CPLEX IO where
             isInfeasibleRef <- newIORef False
             let input = unlines $
                   (case solveTimeLimit opt of
-                          Nothing -> []
-                          Just sec -> ["set timelimit ", show sec]) ++
+                     Nothing -> []
+                     Just sec -> ["set timelimit " ++ show sec]) ++
                   [ "read " ++ show fname1 ] ++
                   cplexCommands solver ++
                   [ "optimize"
