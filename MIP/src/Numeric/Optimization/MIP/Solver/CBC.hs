@@ -55,6 +55,13 @@ instance IsSolver CBC IO where
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["sec", show sec])
+                    ++ (case solveTol opt of
+                          Nothing -> []
+                          Just tol ->
+                            [ "integerTolerance", show (MIP.integralityTol tol)
+                            , "primalTolerance", show (MIP.feasibilityTol tol)
+                            , "dualTolerance", show (MIP.optimalityTol tol)
+                            ])
                     ++ ["solve", "solu", fname2]
                 onGetLine = solveLogger opt
                 onGetErrorLine = solveErrorLogger opt
