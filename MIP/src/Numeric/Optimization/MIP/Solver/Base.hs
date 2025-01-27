@@ -27,6 +27,8 @@ data SolveOptions
   = SolveOptions
   { solveTimeLimit :: Maybe Double
     -- ^ time limit in seconds
+  , solveTol :: Maybe (MIP.Tol Scientific)
+    -- ^ tolerance
   , solveLogger :: String -> IO ()
     -- ^ invoked when a solver output a line
   , solveErrorLogger :: String -> IO ()
@@ -39,6 +41,7 @@ instance Default SolveOptions where
   def =
     SolveOptions
     { solveTimeLimit = Nothing
+    , solveTol = Nothing
     , solveLogger = const $ return ()
     , solveErrorLogger = const $ return ()
     , solveCondensedSolution = False
