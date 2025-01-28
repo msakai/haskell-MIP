@@ -23,6 +23,7 @@ import System.Exit
 import System.IO
 import System.IO.Temp
 import qualified Numeric.Optimization.MIP.LPFile as LPFile
+import qualified Numeric.Optimization.MIP.Base as MIP
 import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.SCIP as ScipSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
@@ -55,6 +56,15 @@ instance IsSolver SCIP IO where
                   (case solveTimeLimit opt of
                      Nothing -> []
                      Just sec -> ["set limits time " ++ show sec]) ++
+                  (case solveTol opt of
+                     Nothing -> []
+                     Just tol ->
+                       [ "set numeric feastol " ++ show (MIP.feasibilityTol tol)
+                       , "set numeric dualfeastol " ++ show (MIP.optimalityTol tol)
+                       , -- https://listserv.zib.de/pipermail/scip/2010-September/000552.html
+                         "set numeric epsilon " ++ show (MIP.integralityTol tol)
+                       ]
+                  ) ++
                   scipCommands solver ++
                   [ "optimize"
                   , "write solution " ++ show fname2

@@ -20,6 +20,7 @@
   * Allow passing arguments solver executables
   * Support printemps solver
   * Support HiGHS solver
+  * Add `solveTol` field to `SolveOptions`
 * Dependencies
   * Require `base >=4.12` (i.e. GHC `>=8.6`)
   * Require `megaparsec >=7`

@@ -23,7 +23,7 @@ import IsClose
 case_glpk :: Assertion
 case_glpk = do
   prob <- MIP.readFile MIP.def "samples/lp/test.lp"
-  sol <- solve glpk MIP.def prob
+  sol <- solve glpk MIP.def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal

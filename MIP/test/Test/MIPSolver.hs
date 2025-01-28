@@ -20,7 +20,7 @@ import IsClose
 case_cbc :: Assertion
 case_cbc = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve cbc def prob
+  sol <- solve cbc def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -61,7 +61,7 @@ case_cbc_infeasible2 = do
 case_cplex :: Assertion
 case_cplex = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve cplex def prob
+  sol <- solve cplex def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -102,7 +102,7 @@ case_cplex_infeasible2 = do
 case_glpsol :: Assertion
 case_glpsol = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve glpsol def prob
+  sol <- solve glpsol def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -132,7 +132,7 @@ case_glpsol_infeasible = do
 case_gurobiCl :: Assertion
 case_gurobiCl = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve gurobiCl def prob
+  sol <- solve gurobiCl def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -173,7 +173,7 @@ case_gurobiCl_infeasible2 = do
 case_highs :: Assertion
 case_highs = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve highs def prob
+  sol <- solve highs def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -214,7 +214,7 @@ case_highs_infeasible2 = do
 case_lpSolve :: Assertion
 case_lpSolve = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve lpSolve def prob
+  sol <- solve lpSolve def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
@@ -255,7 +255,7 @@ case_lpSolve_infeasible2 = do
 case_printemps :: Assertion
 case_printemps = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve printemps def prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
+  sol <- solve printemps def{ solveTol = Just def } prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
   MIP.solStatus sol @?= MIP.StatusFeasible
   let vs = MIP.solVariables sol
   Map.keysSet vs @?= Set.fromList ["x1", "x2", "x3", "x4"]
@@ -272,7 +272,7 @@ case_printemps_with_time_limit = do
 case_scip :: Assertion
 case_scip = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve scip def prob
+  sol <- solve scip def{ solveTol = Just def } prob
   assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal

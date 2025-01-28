@@ -59,6 +59,13 @@ instance IsSolver LPSolve IO where
                   ++ (case solveTimeLimit opt of
                         Nothing -> []
                         Just sec -> ["-timeout", show sec])
+                  ++ (case solveTol opt of
+                        Nothing -> []
+                        Just tol ->
+                          [ "-e", show (MIP.integralityTol tol)
+                          , "-epsb", show (MIP.feasibilityTol tol)
+                          , "-epsd", show (MIP.optimalityTol tol)
+                          ])
                   ++ ["-fmps", fname1]
               onGetLine s = do
                 case s of

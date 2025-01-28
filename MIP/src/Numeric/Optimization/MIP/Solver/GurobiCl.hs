@@ -58,6 +58,13 @@ instance IsSolver GurobiCl IO where
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["TimeLimit=" ++ show sec])
+                    ++ (case solveTol opt of
+                          Nothing -> []
+                          Just tol ->
+                            [ "IntFeasTol=" ++ show (MIP.integralityTol tol)
+                            , "FeasibilityTol=" ++ show (MIP.feasibilityTol tol)
+                            , "OptimalityTol=" ++ show (MIP.optimalityTol tol)
+                            ])
                     ++ [fname1]
                 onGetLine s = do
                   case s of
