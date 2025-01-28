@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.MIP.LPFile
@@ -43,13 +43,9 @@ import Control.Monad.Writer
 import Control.Monad.ST
 import Data.Char
 import Data.Default.Class
-import Data.Interned
 import Data.List
 import Data.Maybe
-#if !MIN_VERSION_base(4,9,0)
-import Data.Monoid
-#endif
-import Data.Scientific (Scientific)
+import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -60,19 +56,14 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
+import qualified Data.Text.Lazy.Builder.Int as B
 import qualified Data.Text.Lazy.Builder.Scientific as B
 import qualified Data.Text.Lazy.IO as TLIO
 import Data.OptDir
 import System.IO
-#if MIN_VERSION_megaparsec(6,0,0)
 import Text.Megaparsec hiding (label, skipManyTill, ParseError)
 import Text.Megaparsec.Char hiding (string', char')
 import qualified Text.Megaparsec.Char.Lexer as P
-#else
-import Text.Megaparsec hiding (label, string', char', ParseError)
-import qualified Text.Megaparsec.Lexer as P
-import Text.Megaparsec.Prim (MonadParsec ())
-#endif
 
 import qualified Numeric.Optimization.MIP.Base as MIP
 import Numeric.Optimization.MIP.FileUtils (ParseError)
@@ -80,19 +71,11 @@ import Numeric.Optimization.MIP.Internal.Util (combineMaybe)
 
 -- ---------------------------------------------------------------------------
 
-#if MIN_VERSION_megaparsec(6,0,0)
 type C e s m = (MonadParsec e s m, Token s ~ Char, IsString (Tokens s))
-#else
-type C e s m = (MonadParsec e s m, Token s ~ Char)
-#endif
 
 -- | Parse a string containing LP file data.
 -- The source name is only used in error messages and may be the empty string.
-#if MIN_VERSION_megaparsec(6,0,0)
 parseString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#else
-parseString :: (Stream s, Token s ~ Char) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#endif
 parseString _ = parse (parser <* eof)
 
 -- | Parse a file containing LP file data.
@@ -109,10 +92,8 @@ parseFile opt fname = do
 
 -- ---------------------------------------------------------------------------
 
-#if MIN_VERSION_megaparsec(7,0,0)
 anyChar :: C e s m => m Char
 anyChar = anySingle
-#endif
 
 char' :: C e s m => Char -> m Char
 char' c = (char c <|> char (toUpper c)) <?> show c
@@ -126,7 +107,7 @@ sep = skipMany ((comment >> return ()) <|> (spaceChar >> return ()))
 comment :: C e s m => m ()
 comment = do
   char '\\'
-  skipManyTill anyChar (try newline)
+  skipManyTill anyChar (try eol)
 
 tok :: C e s m => m a -> m a
 tok p = do
@@ -146,7 +127,7 @@ ident = tok $ do
     syms2 = '.' : syms1
 
 variable :: C e s m => m MIP.Var
-variable = liftM MIP.toVar ident
+variable = liftM fromString ident
 
 label :: C e s m => m MIP.Label
 label = do
@@ -168,16 +149,12 @@ reserved = Set.fromList
 -- ---------------------------------------------------------------------------
 
 -- | LP file parser
-#if MIN_VERSION_megaparsec(6,0,0)
 parser :: (MonadParsec e s m, Token s ~ Char, IsString (Tokens s)) => m (MIP.Problem Scientific)
-#else
-parser :: (MonadParsec e s m, Token s ~ Char) => m (MIP.Problem Scientific)
-#endif
 parser = do
   name <- optional $ try $ do
     space
     string' "\\* Problem: "
-    liftM fromString $ manyTill anyChar (try (string " *\\\n"))
+    liftM fromString $ manyTill anyChar (try (string " *\\" >> eol))
   sep
   obj <- problem
 
@@ -214,17 +191,18 @@ parser = do
     , MIP.constraints       = [c | Left c <- cs]
     , MIP.userCuts          = [c | Right c <- cs]
     , MIP.sosConstraints    = ss
-    , MIP.varType           = Map.fromAscList
-       [ ( v
-         , if isInt v then
-             if isSemi v then MIP.SemiIntegerVariable
-             else MIP.IntegerVariable
-           else
-             if isSemi v then MIP.SemiContinuousVariable
-             else MIP.ContinuousVariable
-         )
-       | v <- Set.toAscList vs ]
-    , MIP.varBounds         = Map.fromAscList [ (v, Map.findWithDefault MIP.defaultBounds v bnds2) | v <- Set.toAscList vs]
+    , MIP.varDomains        = Map.fromAscList
+       [ (v, (t, bs))
+       | v <- Set.toAscList vs
+       , let t =
+               if isInt v then
+                 if isSemi v then MIP.SemiIntegerVariable
+                 else MIP.IntegerVariable
+               else
+                 if isSemi v then MIP.SemiContinuousVariable
+                 else MIP.ContinuousVariable
+       , let bs = Map.findWithDefault MIP.defaultBounds v bnds2
+       ]
     }
 
 problem :: C e s m => m (MIP.ObjectiveFunction Scientific)
@@ -296,7 +274,7 @@ indicator :: C e s m => m (MIP.Var, Scientific)
 indicator = do
   var <- variable
   tok (char '=')
-  val <- tok ((char '0' >> return 0) <|> (char '1' >> return 1))
+  val <- number  -- numbers other than 0 or 1 should be error?
   tok $ string "->"
   return (var, val)
 
@@ -458,11 +436,7 @@ qfactor = do
        ]
 
 number :: forall e s m. C e s m => m Scientific
-#if MIN_VERSION_megaparsec(6,0,0)
 number = tok $ P.signed sep P.scientific
-#else
-number = tok $ P.signed sep P.number
-#endif
 
 skipManyTill :: Alternative m => m a -> m end -> m ()
 skipManyTill p end' = scan
@@ -489,7 +463,7 @@ render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip = Right $ execM $ render' $ normalize mip
 
 writeVar :: MIP.Var -> M ()
-writeVar v = writeString $ unintern v
+writeVar (MIP.Var v) = writeString v
 
 render' :: MIP.Problem Scientific -> M ()
 render' mip = do
@@ -589,13 +563,13 @@ renderExpr isObj e = fill 80 (ts1 ++ ts2)
 
     f :: MIP.Term Scientific -> T.Text
     f (MIP.Term c [])  = showConstTerm c
-    f (MIP.Term c [v]) = showCoeff c <> fromString (MIP.fromVar v)
+    f (MIP.Term c [v]) = showCoeff c <> MIP.varName v
     f _ = error "should not happen"
 
     g :: MIP.Term Scientific -> T.Text
     g (MIP.Term c vs) =
       (if isObj then showCoeff (2*c) else showCoeff c) <>
-      mconcat (intersperse " * " (map (fromString . MIP.fromVar) vs))
+      mconcat (intersperse " * " (map MIP.varName vs))
 
 showValue :: Scientific -> T.Text
 showValue = fromString . show
@@ -633,7 +607,10 @@ renderConstraint c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.co
     Just (v,vval) -> do
       writeVar v
       writeString " = "
-      tell $ B.scientificBuilder vval
+      tell $
+        case floatingOrInteger vval of
+          Right (i :: Integer) -> B.decimal i
+          Left (_ :: Double) -> B.scientificBuilder vval  -- should be error?
       writeString " -> "
 
   renderExpr False e
@@ -654,7 +631,7 @@ renderBoundExpr MIP.NegInf = writeString "-inf"
 renderBoundExpr MIP.PosInf = writeString "+inf"
 
 renderVariableList :: [MIP.Var] -> M ()
-renderVariableList vs = fill 80 (map unintern vs) >> writeChar '\n'
+renderVariableList vs = fill 80 (map MIP.varName vs) >> writeChar '\n'
 
 fill :: Int -> [T.Text] -> M ()
 fill width str = go str 0
@@ -692,7 +669,7 @@ removeRangeConstraints prob = runST $ do
   let gensym = do
         vs <- readSTRef vsRef
         let loop !c = do
-              let v = MIP.toVar ("~r_" ++ show c)
+              let v = fromString ("~r_" ++ show c)
               if v `Set.member` vs then
                 loop (c+1)
               else do
@@ -720,8 +697,7 @@ removeRangeConstraints prob = runST $ do
   return $
     prob
     { MIP.constraints = cs2
-    , MIP.varType = MIP.varType prob `Map.union` Map.fromList [(v, MIP.ContinuousVariable) | (v,_) <- newvs]
-    , MIP.varBounds = MIP.varBounds prob `Map.union` (Map.fromList newvs)
+    , MIP.varDomains = MIP.varDomains prob `Map.union` Map.fromList [(v, (MIP.ContinuousVariable, bs)) | (v,bs) <- newvs]
     }
 
 removeEmptyExpr :: Num r => MIP.Problem r -> MIP.Problem r
@@ -734,7 +710,7 @@ removeEmptyExpr prob =
   where
     obj = MIP.objectiveFunction prob
 
-    convertExpr (MIP.Expr []) = MIP.Expr [MIP.Term 0 [MIP.toVar "x0"]]
+    convertExpr (MIP.Expr []) = MIP.Expr [MIP.Term 0 [fromString "x0"]]
     convertExpr e = e
 
     convertConstr constr =

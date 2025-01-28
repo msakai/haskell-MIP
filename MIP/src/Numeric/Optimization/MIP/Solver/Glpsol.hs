@@ -33,16 +33,17 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data Glpsol
   = Glpsol
   { glpsolPath :: String
+  , glpsolArgs :: [String]
   }
 
 instance Default Glpsol where
   def = glpsol
 
 glpsol :: Glpsol
-glpsol = Glpsol "glpsol"
+glpsol = Glpsol "glpsol" []
 
 instance IsSolver Glpsol IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do
@@ -53,7 +54,8 @@ instance IsSolver Glpsol IO where
             hClose h2
             isUnboundedRef <- newIORef False
             isInfeasibleRef <- newIORef False
-            let args = ["--lp", fname1, "-o", fname2] ++
+            let args = glpsolArgs solver ++
+                       ["--lp", fname1, "-o", fname2] ++
                        (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["--tmlim", show (max 1 (floor sec) :: Int)])
@@ -68,7 +70,7 @@ instance IsSolver Glpsol IO where
                     _ -> return ()
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (glpsolPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (glpsolPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do

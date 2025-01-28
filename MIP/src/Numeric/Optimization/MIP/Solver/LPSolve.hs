@@ -35,16 +35,17 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data LPSolve
   = LPSolve
   { lpSolvePath :: String
+  , lpSolveArgs :: [String]
   }
 
 instance Default LPSolve where
   def = lpSolve
 
 lpSolve :: LPSolve
-lpSolve = LPSolve "lp_solve"
+lpSolve = LPSolve "lp_solve" []
 
 instance IsSolver LPSolve IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case MPSFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do
@@ -54,9 +55,17 @@ instance IsSolver LPSolve IO where
           objRef <- newIORef Nothing
           solRef <- newIORef []
           flagRef <- newIORef False
-          let args = (case solveTimeLimit opt of
+          let args = lpSolveArgs solver
+                  ++ (case solveTimeLimit opt of
                         Nothing -> []
                         Just sec -> ["-timeout", show sec])
+                  ++ (case solveTol opt of
+                        Nothing -> []
+                        Just tol ->
+                          [ "-e", show (MIP.integralityTol tol)
+                          , "-epsb", show (MIP.feasibilityTol tol)
+                          , "-epsd", show (MIP.optimalityTol tol)
+                          ])
                   ++ ["-fmps", fname1]
               onGetLine s = do
                 case s of
@@ -72,7 +81,7 @@ instance IsSolver LPSolve IO where
                     return ()
                 solveLogger opt s
               onGetErrorLine = solveErrorLogger opt
-          exitcode <- runProcessWithOutputCallback (lpSolvePath solver) args "" onGetLine onGetErrorLine
+          exitcode <- runProcessWithOutputCallback (lpSolvePath solver) args Nothing "" onGetLine onGetErrorLine
           status <-
             case exitcode of
               ExitSuccess      -> return MIP.StatusOptimal

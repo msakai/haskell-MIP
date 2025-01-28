@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
@@ -20,12 +19,9 @@ module Numeric.Optimization.MIP.Solution.CBC
   ) where
 
 import Prelude hiding (readFile, writeFile)
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 
+import Control.Monad (foldM)
 import Control.Monad.Except
-import Data.Interned (intern)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
@@ -62,8 +58,8 @@ parse' (l1:ls) = do
   let f :: [(MIP.Var, Scientific)] -> TL.Text -> Either String [(MIP.Var, Scientific)]
       f vs t =
         case TL.words t of
-          ("**":_no:var:val:_) -> return $ (intern (TL.toStrict var), read (TL.unpack val)) : vs
-          (_no:var:val:_) -> return $ (intern (TL.toStrict var), read (TL.unpack val)) : vs
+          ("**":_no:var:val:_) -> return $ (MIP.Var (TL.toStrict var), read (TL.unpack val)) : vs
+          (_no:var:val:_) -> return $ (MIP.Var (TL.toStrict var), read (TL.unpack val)) : vs
           [] -> return $ vs
           _ -> throwError ("Numeric.Optimization.MIP.Solution.CBC: invalid line " ++ show t)
   vs <- foldM f [] ls

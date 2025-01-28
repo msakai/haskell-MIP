@@ -1,4 +1,11 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+
 name: build
 jobs:
   haskell-MIP:
@@ -7,34 +14,62 @@ jobs:
     env:
       STACK_YAML: ${{ matrix.stack_yaml }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - ghc: '8.8.4'
+          - ghc: '9.10.1'
             os: ubuntu-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_yaml: 'stack-ghc-9.10.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS'
+          - ghc: '9.8.4'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.8.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS'
+          - ghc: '9.6.6'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--coverage --haddock --no-haddock-deps'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS --flag MIP:TestSCIP'
             coveralls: true
-          - ghc: '8.8.4'
+            scip_docker: true
+          - ghc: '9.4.8'
             os: ubuntu-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_yaml: 'stack-ghc-9.4.yaml'
             stack_args: ''
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:-WithZLIB'
-            coveralls: false
-          - ghc: '8.8.4'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS --flag MIP:-WithZLIB'
+          - ghc: '9.2.8'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.2.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS'
+          - ghc: '9.0.2'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.0.yaml'
+            stack_args: ''
+            stack_test_args: ''
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS'
+
+          - ghc: '9.6.6'
             os: macos-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
-            stack_args: ''
+            stack_yaml: 'stack-ghc-9.6.yaml'
+            stack_args: '--extra-include-dirs /opt/homebrew/include --extra-lib-dirs /opt/homebrew/lib'
             stack_test_args: ''
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS --flag MIP:TestPrintemps --flag MIP:TestSCIP'
             coveralls: false
-          - ghc: '8.8.4'
+
+          - ghc: '9.6.6'
             os: windows-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
+            # Testing of HiGHS sometimes stuck
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
             coveralls: false
             windows_32_or_64: '64'
@@ -44,16 +79,16 @@ jobs:
             stack_yaml: 'stack-windows-i386.yaml'
             stack_args: '--arch i386'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX'
+            flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestCPLEX --flag MIP:TestHiGHS'
             coveralls: false
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: ''
-          - ghc: '8.8.4'
+          - ghc: '9.6.6'
             os: windows-latest
-            stack_yaml: 'stack-ghc-8.8.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: '--arch x86_64'
             stack_test_args: '-j1'  # https://github.com/commercialhaskell/stack/issues/5024
-            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve'
+            flags: '--flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestHiGHS'
             coveralls: false
             windows_32_or_64: '64'
             MINGW_PACKAGE_PREFIX: 'mingw-w64-x86_64'
@@ -67,9 +102,10 @@ jobs:
             windows_32_or_64: '32'
             MINGW_PACKAGE_PREFIX: 'mingw-w64-i686'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: haskell/actions/setup@v1
+      - uses: haskell-actions/setup@v2
+        id: setup-haskell
         name: Setup Haskell
         with:
           ghc-version: ${{ matrix.ghc }}
@@ -78,26 +114,38 @@ jobs:
           stack-no-global: true
           stack-setup-ghc: true
 
+      # setup-conda does not work on macos-13 and later
+      # https://github.com/s-weigand/setup-conda/issues/432
       - uses: s-weigand/setup-conda@v1
         name: Setup Conda
-        with: 
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl') || contains(matrix.flags, '--flag MIP:TestCPLEX')
+        with:
+          python-version: 3.12
           conda-channels: gurobi, ibmdecisionoptimization
-          python-version: 3.7  # CPLEX does not support Python 3.8 yet
 
-      - name: Install packages (Conda)
-        run: conda install gurobi cplex
+      - name: Install packages (Gurobi)
+        if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
+        run: conda install gurobi
+
+      - name: Install packages (CPLEX)
+        if: contains(matrix.flags, '--flag MIP:TestCPLEX')
+        run: conda install cplex
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+        run: |
+          sudo apt-get install coinor-cbc glpk-utils libglpk-dev lp-solve
+
+          echo $GITHUB_WORKSPACE >> $GITHUB_PATH
+          fname=HiGHSstatic.v1.9.0.x86_64-linux-gnu-cxx11.tar.gz
+          curl -o${fname} -L --insecure https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.9.0%2B0/${fname}
+          tar zxf ${fname} bin/highs --strip-components 1
 
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cbc glpk
-          curl -L https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz | tar xz
-          (cd lp_solve_5.5/lp_solve && sh ccc.osx)
-          echo "${GITHUB_WORKSPACE}/lp_solve_5.5/lp_solve/bin/osx64" >> $GITHUB_PATH
+          brew install cbc glpk highs lp_solve scip
+          brew install msakai/tap/printemps
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == ''
@@ -105,8 +153,8 @@ jobs:
         run: |
           echo $GITHUB_WORKSPACE >> $GITHUB_PATH
 
-          curl -oCOIN-OR-1.8.0-win32-msvc12.zip -L --insecure https://www.coin-or.org/download/binary/OptimizationSuite/COIN-OR-1.8.0-win32-msvc12.zip
-          7z e COIN-OR-1.8.0-win32-msvc12.zip COIN-OR/win32-msvc12/bin/cbc.exe
+          curl -oCbc-releases.2.10.12-w64-msvc17-md.zip -L --insecure https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.12/Cbc-releases.2.10.12-w64-msvc17-md.zip
+          7z e Cbc-releases.2.10.12-w64-msvc17-md.zip bin/cbc.exe
 
           curl -owinglpk-4.65.zip -L --insecure https://jaist.dl.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip
           7z x winglpk-4.65.zip
@@ -118,16 +166,51 @@ jobs:
           curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
           7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
 
+          if [[ ${{ matrix.windows_32_or_64 }} == "32" ]]; then
+              fname=HiGHSstatic.v1.9.0.i686-w64-mingw32.tar.gz
+          else
+              fname=HiGHSstatic.v1.9.0.x86_64-w64-mingw32.tar.gz
+          fi
+          curl -o${fname} -L --insecure https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.9.0%2B0/${fname}
+          tar zxf ${fname} bin/highs.exe --strip-components 1
+
+      # See https://www.msys2.org/news/#2020-06-29-new-packagers about the msys2-keyring workaround
+      - name: Fix msys2-keyring in stack-msys environment
+        if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX == 'mingw-w64-i686'
+        shell: bash
+        run: |
+          curl -O https://repo.msys2.org/msys/i686/msys2-keyring-1~20210213-2-any.pkg.tar.zst
+          curl -O https://repo.msys2.org/msys/i686/pacman-6.0.0-4-i686.pkg.tar.zst
+          stack exec ${{ matrix.stack_args }} -- bash -c "
+          set -eux
+          # cp /etc/pacman.conf /etc/pacman.conf.orig
+          sed -i -e 's/^LocalFileSigLevel = .*$/LocalFileSigLevel = Never/' /etc/pacman.conf
+          pacman -U --noconfirm msys2-keyring-1~20210213-2-any.pkg.tar.zst pacman-6.0.0-4-i686.pkg.tar.zst
+          # mv /etc/pacman.conf.orig /etc/pacman.conf
+          "
+
       - name: Install packages (MINGW)
         if: runner.os == 'Windows' && matrix.MINGW_PACKAGE_PREFIX != ''
         shell: bash
-        run: stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
+        run: |
+          stack exec ${{ matrix.stack_args }} -- pacman -Sy --noconfirm
+          stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-glpk ${{ matrix.MINGW_PACKAGE_PREFIX }}-lpsolve
+          if [[ ${{ matrix.MINGW_PACKAGE_PREFIX }} != 'mingw-w64-i686' ]]; then
+            stack exec ${{ matrix.stack_args }} -- pacman -S --needed --noconfirm ${{ matrix.MINGW_PACKAGE_PREFIX }}-highs
+          fi
+      - name: Setup SCIP Docker image
+        if: matrix.scip_docker
+        run: |
+          docker image pull scipoptsuite/scipoptsuite:7.0.2
+          echo "${GITHUB_WORKSPACE}/misc/scip_docker_wrapper" >> $GITHUB_PATH
 
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         name: Cache ~/.stack
         with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ matrix.ghc }}-stack
+          path: ${{ steps.setup-haskell.outputs.stack-root }}
+          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('*/*.cabal') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-
 
       # https://github.com/commercialhaskell/stack/issues/5405
       - name: Clear setup-exe-cache directory
@@ -149,5 +232,5 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
-          curl -L https://github.com/lehins/stack-hpc-coveralls/releases/download/v0.0.6.0/shc.tar.gz | tar -xz
+          curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.7.0/shc-Linux-X64.tar.bz2 | tar -xj
           ./shc --repo-token="$COVERALLS_REPO_TOKEN" combined all

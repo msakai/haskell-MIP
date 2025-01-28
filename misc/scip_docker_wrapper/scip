@@ -1,0 +1,4 @@
+#!/bin/bash
+
+CanonicalTemporaryDirectory=`ghc -package temporary -e "import System.IO.Temp" -e "getCanonicalTemporaryDirectory >>= putStrLn"`
+docker run -v $CanonicalTemporaryDirectory:$CanonicalTemporaryDirectory -u `id -u` --entrypoint=scip scipoptsuite/scipoptsuite:7.0.2 "$@"

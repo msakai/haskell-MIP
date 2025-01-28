@@ -22,16 +22,11 @@ module Numeric.Optimization.MIP.Solution.Gurobi
   ) where
 
 import Prelude hiding (readFile, writeFile)
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 import Data.Default.Class
-import Data.Interned (intern, unintern)
+#if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
-import qualified Data.Map as Map
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid
 #endif
+import qualified Data.Map as Map
 import Data.Scientific (Scientific)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
@@ -46,7 +41,7 @@ render sol = B.toLazyText $ ls1 <> mconcat ls2
     ls1 = case MIP.solObjectiveValue sol of
             Nothing  -> mempty
             Just val -> "# Objective value = " <> B.scientificBuilder val <> B.singleton '\n'
-    ls2 = [ B.fromText (unintern name) <> B.singleton ' ' <> B.scientificBuilder val <> B.singleton '\n'
+    ls2 = [ B.fromText (MIP.varName name) <> B.singleton ' ' <> B.scientificBuilder val <> B.singleton '\n'
           | (name,val) <- Map.toList (MIP.solVariables sol)
           ]
 
@@ -71,7 +66,7 @@ parse t =
           (Just r, vs)
       | otherwise =
           case TL.words (TL.takeWhile (/= '#') l) of
-            [w1, w2] -> (obj, (intern (TL.toStrict w1), read (TL.unpack w2)) : vs)
+            [w1, w2] -> (obj, (MIP.Var (TL.toStrict w1), read (TL.unpack w2)) : vs)
             [] -> (obj, vs)
             _ -> error ("Numeric.Optimization.MIP.Solution.Gurobi: invalid line " ++ show l)
 

@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
@@ -21,11 +20,7 @@ module Numeric.Optimization.MIP.Solution.CPLEX
   ) where
 
 import Prelude hiding (readFile)
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 import Data.Default.Class
-import Data.Interned
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
@@ -69,7 +64,7 @@ parseDoc doc =
           let m = XML.elementAttributes e
           name <- Map.lookup "name" m
           value <- read . T.unpack <$> Map.lookup "value" m
-          return (intern name, value)
+          return (MIP.Var name, value)
       | otherwise = []
     vs = fromDocument doc
       $| element "CPLEXSolution"

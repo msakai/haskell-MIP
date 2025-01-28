@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.MIP
@@ -118,19 +119,11 @@ readTextFile opt fname = do
 #endif
 
 -- | Parse a string containing LP file data.
-#if MIN_VERSION_megaparsec(6,0,0)
 parseLPString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
-#else
-parseLPString :: (Stream s, Token s ~ Char) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
-#endif
 parseLPString = LPFile.parseString
 
 -- | Parse a string containing MPS file data.
-#if MIN_VERSION_megaparsec(6,0,0)
 parseMPSString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
-#else
-parseMPSString :: (Stream s, Token s ~ Char) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
-#endif
 parseMPSString = MPSFile.parseString
 
 -- | Generate LP file or MPS file based on file extension.

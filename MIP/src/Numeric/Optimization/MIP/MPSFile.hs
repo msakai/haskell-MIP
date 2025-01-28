@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.MIP.MPSFile
@@ -37,17 +37,11 @@ module Numeric.Optimization.MIP.MPSFile
   , render
   ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<$>), (<*))
-#endif
 import Control.Exception (throwIO)
 import Control.Monad
 import Control.Monad.Writer
 import Data.Default.Class
 import Data.Maybe
-#if !MIN_VERSION_base(4,9,0)
-import Data.Monoid
-#endif
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
@@ -62,17 +56,10 @@ import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.IO as TLIO
 import System.IO
-#if MIN_VERSION_megaparsec(6,0,0)
 import Text.Megaparsec hiding  (ParseError)
-import Text.Megaparsec.Char hiding (string', newline)
+import Text.Megaparsec.Char hiding (string', eol)
 import qualified Text.Megaparsec.Char as P
 import qualified Text.Megaparsec.Char.Lexer as Lexer
-#else
-import qualified Text.Megaparsec as P
-import Text.Megaparsec hiding (string', newline, ParseError)
-import qualified Text.Megaparsec.Lexer as Lexer
-import Text.Megaparsec.Prim (MonadParsec ())
-#endif
 
 import Data.OptDir
 import qualified Numeric.Optimization.MIP.Base as MIP
@@ -97,19 +84,11 @@ data BoundType
 
 -- ---------------------------------------------------------------------------
 
-#if MIN_VERSION_megaparsec(6,0,0)
 type C e s m = (MonadParsec e s m, Token s ~ Char, IsString (Tokens s))
-#else
-type C e s m = (MonadParsec e s m, Token s ~ Char)
-#endif
 
 -- | Parse a string containing MPS file data.
 -- The source name is only used in error messages and may be the empty string.
-#if MIN_VERSION_megaparsec(6,0,0)
 parseString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#else
-parseString :: (Stream s, Token s ~ Char) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
-#endif
 parseString _ = parse (parser <* eof)
 
 -- | Parse a file containing MPS file data.
@@ -127,10 +106,8 @@ parseFile opt fname = do
 -- ---------------------------------------------------------------------------
 
 
-#if MIN_VERSION_megaparsec(7,0,0)
 anyChar :: C e s m => m Char
 anyChar = anySingle
-#endif
 
 space' :: C e s m => m Char
 space' = oneOf [' ', '\t']
@@ -144,49 +121,41 @@ spaces1' = skipSome space'
 commentline :: C e s m => m ()
 commentline = do
   _ <- char '*'
-  _ <- manyTill anyChar P.newline
+  _ <- manyTill anyChar P.eol
   return ()
 
-newline' :: C e s m => m ()
-newline' = do
+eol' :: C e s m => m ()
+eol' = do
   spaces'
-  _ <- P.newline
+  _ <- P.eol
   skipMany commentline
   return ()
 
 tok :: C e s m => m a -> m a
 tok p = do
   x <- p
-  msum [eof, lookAhead (char '\n' >> return ()), spaces1']
+  msum [eof, lookAhead (P.eol >> return ()), spaces1']
   return x
 
 row :: C e s m => m Row
 row = liftM intern ident
 
 column :: C e s m => m Column
-column = liftM intern $ ident
+column = liftM MIP.Var $ ident
 
 ident :: C e s m => m T.Text
-ident = liftM fromString $ tok $ some $ noneOf [' ', '\t', '\n']
+ident = liftM fromString $ tok $ some $ noneOf [' ', '\t', '\r', '\n']
 
 stringLn :: C e s m => String -> m ()
-stringLn s = string (fromString s) >> newline'
+stringLn s = string (fromString s) >> eol'
 
 number :: forall e s m. C e s m => m Scientific
-#if MIN_VERSION_megaparsec(6,0,0)
 number = tok $ Lexer.signed (return ()) Lexer.scientific
-#else
-number = tok $ Lexer.signed (return ()) Lexer.number
-#endif
 
 -- ---------------------------------------------------------------------------
 
 -- | MPS file parser
-#if MIN_VERSION_megaparsec(6,0,0)
 parser :: (MonadParsec e s m, Token s ~ Char, IsString (Tokens s)) => m (MIP.Problem Scientific)
-#else
-parser :: (MonadParsec e s m, Token s ~ Char) => m (MIP.Problem Scientific)
-#endif
 parser = do
   many commentline
 
@@ -353,21 +322,22 @@ parser = do
         , MIP.constraints           = concatMap (f False) rows ++ concatMap (f True) lazycons
         , MIP.sosConstraints        = sos
         , MIP.userCuts              = concatMap (f False) usercuts
-        , MIP.varType               = Map.fromAscList
-            [ ( v
-              , if v `Set.member` sivs then
-                  MIP.SemiIntegerVariable
-                else if v `Set.member` intvs1 && v `Set.member` scvs then
-                  MIP.SemiIntegerVariable
-                else if v `Set.member` intvs1 || v `Set.member` intvs2 then
-                  MIP.IntegerVariable
-                else if v `Set.member` scvs then
-                  MIP.SemiContinuousVariable
-                else
-                  MIP.ContinuousVariable
-              )
-            | v <- Set.toAscList vs ]
-        , MIP.varBounds             = Map.fromAscList [(v, Map.findWithDefault MIP.defaultBounds v bounds) | v <- Set.toAscList vs]
+        , MIP.varDomains            = Map.fromAscList
+            [ (v, (t, bs))
+            | v <- Set.toAscList vs
+            , let t =
+                    if v `Set.member` sivs then
+                      MIP.SemiIntegerVariable
+                    else if v `Set.member` intvs1 && v `Set.member` scvs then
+                      MIP.SemiIntegerVariable
+                    else if v `Set.member` intvs1 || v `Set.member` intvs2 then
+                      MIP.IntegerVariable
+                    else if v `Set.member` scvs then
+                      MIP.SemiContinuousVariable
+                    else
+                      MIP.ContinuousVariable
+            , let bs = Map.findWithDefault MIP.defaultBounds v bounds
+            ]
         }
 
   return mip
@@ -378,7 +348,7 @@ nameSection = do
   n <- optional $ try $ do
     spaces1'
     ident
-  newline'
+  eol'
   return n
 
 objSenseSection :: C e s m => m OptDir
@@ -394,7 +364,7 @@ objNameSection = do
   try $ stringLn "OBJNAME"
   spaces1'
   name <- ident
-  newline'
+  eol'
   return name
 
 rowsSection :: C e s m => m [(Maybe MIP.RelOp, Row)]
@@ -423,7 +393,7 @@ rowsBody = many $ do
         ]
   spaces1'
   name <- row
-  newline'
+  eol'
   return (op, name)
 
 colsSection :: forall e s m. C e s m => m (Map Column (Map Row Scientific), Set Column)
@@ -452,15 +422,15 @@ colsSection = do
       spaces1'
       b <-  (try (string "'INTORG'") >> return True)
         <|> (string "'INTEND'" >> return False)
-      newline'
+      eol'
       return b
 
     entry :: T.Text -> m (Column, Map Row Scientific)
     entry x = do
-      let col = intern x
+      let col = MIP.Var x
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing -> return (col, rv1)
         Just rv2 ->  return (col, Map.union rv1 rv2)
@@ -481,7 +451,7 @@ rhsSection = do
       _name <- ident
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing  -> return rv1
         Just rv2 -> return $ Map.union rv1 rv2
@@ -496,7 +466,7 @@ rangesSection = do
       _name <- ident
       rv1 <- rowAndVal
       opt <- optional rowAndVal
-      newline'
+      eol'
       case opt of
         Nothing  -> return rv1
         Just rv2 -> return $ Map.union rv1 rv2
@@ -514,7 +484,7 @@ boundsSection = do
       val   <- if typ `elem` [FR, BV, MI, PL]
                then return 0
                else number
-      newline'
+      eol'
       return (typ, col, val)
 
 boundType :: C e s m => m BoundType
@@ -532,7 +502,7 @@ sosSection = do
           <|> (string "S2" >> return MIP.S2)
       spaces1'
       name <- ident
-      newline'
+      eol'
       xs <- many (try identAndVal)
       return $ MIP.SOSConstraint{ MIP.sosLabel = Just name, MIP.sosType = typ, MIP.sosBody = xs }
 
@@ -541,7 +511,7 @@ sosSection = do
       spaces1'
       col <- column
       val <- number
-      newline'
+      eol'
       return (col, val)
 
 quadObjSection :: C e s m => m [MIP.Term Scientific]
@@ -554,7 +524,7 @@ quadObjSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term (if col1 /= col2 then val else val / 2) [col1, col2]
 
 qMatrixSection :: C e s m => m [MIP.Term Scientific]
@@ -567,7 +537,7 @@ qMatrixSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term (val / 2) [col1, col2]
 
 qcMatrixSection :: C e s m => m (Row, [MIP.Term Scientific])
@@ -575,7 +545,7 @@ qcMatrixSection = do
   try $ string "QCMATRIX"
   spaces1'
   r <- row
-  newline'
+  eol'
   xs <- many entry
   return (r, xs)
   where
@@ -584,7 +554,7 @@ qcMatrixSection = do
       col1 <- column
       col2 <- column
       val  <- number
-      newline'
+      eol'
       return $ MIP.Term val [col1, col2]
 
 indicatorsSection :: C e s m => m (Map Row (Column, Scientific))
@@ -599,7 +569,7 @@ indicatorsSection = do
       r <- row
       var <- column
       val <- number
-      newline'
+      eol'
       return (r, (var, val))
 
 -- ---------------------------------------------------------------------------
@@ -620,10 +590,10 @@ writeChar c = tell $ B.singleton c
 -- | Render a problem into a 'TL.Text' containing MPS file data.
 render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip | not (checkAtMostQuadratic mip) = Left "Expression must be atmost quadratic"
-render _ mip = Right $ execM $ render' $ nameRows mip
+render opt mip = Right $ execM $ render' opt $ nameRows mip
 
-render' :: MIP.Problem Scientific -> M ()
-render' mip = do
+render' :: MIP.FileOptions -> MIP.Problem Scientific -> M ()
+render' opt mip = do
   let probName = fromMaybe "" (MIP.name mip)
 
   -- NAME section
@@ -637,11 +607,13 @@ render' mip = do
        } = MIP.objectiveFunction mip
 
   -- OBJSENSE section
-  -- Note: GLPK-4.48 does not support this section.
-  writeSectionHeader "OBJSENSE"
-  case dir of
-    OptMin -> writeFields ["MIN"]
-    OptMax -> writeFields ["MAX"]
+  when (MIP.optMPSWriteObjSense opt == MIP.WriteAlways ||
+        MIP.optMPSWriteObjSense opt == MIP.WriteIfNotDefault && dir /= OptMin) $ do
+    -- Note: GLPK-4.48 does not support this section.
+    writeSectionHeader "OBJSENSE"
+    case dir of
+      OptMin -> writeFields ["MIN"]
+      OptMax -> writeFields ["MAX"]
 
 {-
   -- OBJNAME section
@@ -696,7 +668,7 @@ render' mip = do
              ]
       f col xs =
         forM_ (Map.toList xs) $ \(r, d) -> do
-          writeFields ["", unintern col, r, showValue d]
+          writeFields ["", MIP.varName col, r, showValue d]
       ivs = MIP.integerVariables mip `Set.union` MIP.semiIntegerVariables mip
   forM_ (Map.toList (Map.filterWithKey (\col _ -> col `Set.notMember` ivs) cols)) $ \(col, xs) -> f col xs
   unless (Set.null ivs) $ do
@@ -719,33 +691,33 @@ render' mip = do
 
   -- BOUNDS section
   writeSectionHeader "BOUNDS"
-  forM_ (Map.toList (MIP.varType mip)) $ \(col, vt) -> do
+  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, _)) -> do
     let (lb,ub) = MIP.getBounds mip col
     case (lb,ub)  of
       (MIP.NegInf, MIP.PosInf) -> do
         -- free variable (no lower or upper bound)
-        writeFields ["FR", "bound", unintern col]
+        writeFields ["FR", "bound", MIP.varName col]
 
       (MIP.Finite 0, MIP.Finite 1) | vt == MIP.IntegerVariable -> do
         -- variable is binary (equal 0 or 1)
-        writeFields ["BV", "bound", unintern col]
+        writeFields ["BV", "bound", MIP.varName col]
 
       (MIP.Finite a, MIP.Finite b) | a == b -> do
         -- variable is fixed at the specified value
-        writeFields ["FX", "bound", unintern col, showValue a]
+        writeFields ["FX", "bound", MIP.varName col, showValue a]
 
       _ -> do
         case lb of
           MIP.PosInf -> error "should not happen"
           MIP.NegInf -> do
             -- Minus infinity
-            writeFields ["MI", "bound", unintern col]
+            writeFields ["MI", "bound", MIP.varName col]
           MIP.Finite 0 | vt == MIP.ContinuousVariable -> return ()
           MIP.Finite a -> do
             let t = case vt of
                       MIP.IntegerVariable -> "LI" -- lower bound for integer variable
                       _ -> "LO" -- Lower bound
-            writeFields [t, "bound", unintern col, showValue a]
+            writeFields [t, "bound", MIP.varName col, showValue a]
 
         case ub of
           MIP.NegInf -> error "should not happen"
@@ -753,7 +725,7 @@ render' mip = do
           MIP.PosInf -> do
             when (vt == MIP.SemiContinuousVariable || vt == MIP.SemiIntegerVariable) $
               error "cannot express +inf upper bound of semi-continuous or semi-integer variable"
-            writeFields ["PL", "bound", unintern col] -- Plus infinity
+            writeFields ["PL", "bound", MIP.varName col] -- Plus infinity
           MIP.Finite a -> do
             let t = case vt of
                       MIP.SemiContinuousVariable -> "SC" -- Upper bound for semi-continuous variable
@@ -762,7 +734,7 @@ render' mip = do
                         "SC"
                       MIP.IntegerVariable -> "UI" -- Upper bound for integer variable
                       _ -> "UP" -- Upper bound
-            writeFields [t, "bound", unintern col, showValue a]
+            writeFields [t, "bound", MIP.varName col, showValue a]
 
   -- QMATRIX section
   -- Gurobiは対称行列になっていないと "qmatrix isn't symmetric" というエラーを発生させる
@@ -770,7 +742,7 @@ render' mip = do
      unless (Map.null qm) $ do
        writeSectionHeader "QMATRIX"
        forM_ (Map.toList qm) $ \(((v1,v2), val)) -> do
-         writeFields ["", unintern v1, unintern v2, showValue val]
+         writeFields ["", MIP.varName v1, MIP.varName v2, showValue val]
 
   -- SOS section
   unless (null (MIP.sosConstraints mip)) $ do
@@ -781,7 +753,7 @@ render' mip = do
                 MIP.S2 -> "S2"
       writeFields $ t : maybeToList (MIP.sosLabel sos)
       forM_ (MIP.sosBody sos) $ \(var,val) -> do
-        writeFields ["", unintern var, showValue val]
+        writeFields ["", MIP.varName var, showValue val]
 
   -- QCMATRIX section
   let xs = [ (fromJust $ MIP.constrLabel c, qm)
@@ -794,7 +766,7 @@ render' mip = do
       -- The name starts in column 12 in fixed formats.
       writeSectionHeader $ "QCMATRIX" <> T.replicate 3 " " <> r
       forM_ (Map.toList qm) $ \((v1,v2), val) -> do
-        writeFields ["", unintern v1, unintern v2, showValue val]
+        writeFields ["", MIP.varName v1, MIP.varName v2, showValue val]
 
   -- INDICATORS section
   -- Note: Gurobi-5.6.3 does not support this section.
@@ -803,7 +775,7 @@ render' mip = do
     writeSectionHeader "INDICATORS"
     forM_ ics $ \c -> do
       let Just (var,val) = MIP.constrIndicator c
-      writeFields ["IF", fromJust (MIP.constrLabel c), unintern var, showValue val]
+      writeFields ["IF", fromJust (MIP.constrLabel c), MIP.varName var, showValue val]
 
   -- ENDATA section
   writeSectionHeader "ENDATA"

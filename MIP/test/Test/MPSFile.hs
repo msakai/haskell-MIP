@@ -3,6 +3,7 @@ module Test.MPSFile (mpsTestGroup) where
 
 import Control.Monad
 import Data.Default.Class
+import Data.Either
 import Data.List
 import Data.Maybe
 import Test.Tasty
@@ -20,7 +21,21 @@ case_quadobj1 = checkFile "samples/mps/quadobj1.mps"
 case_quadobj2 = checkFile "samples/mps/quadobj2.mps"
 case_ranges   = checkFile "samples/mps/ranges.mps"
 case_sos      = checkFile "samples/mps/sos.mps"
+case_sos2     = checkFile "samples/mps/test-sos2.mps"
 case_sc       = checkFile "samples/mps/sc.mps"
+case_semicont = checkFile "samples/mps/test-semicont.mps"
+case_semiint_sc = checkFile "samples/mps/test-semiint-sc.mps"
+case_semiint_si = checkFile "samples/mps/test-semiint-si.mps"
+case_bounds_fixed = checkFile "samples/mps/test-bounds-fixed.mps"
+case_bounds_free = checkFile "samples/mps/test-bounds-free.mps"
+case_bounds_MI = checkFile "samples/mps/test-bounds-mi.mps"
+case_bounds_PL = checkFile "samples/mps/test-bounds-pl.mps"
+case_bounds_BV = checkFile "samples/mps/test-bounds-bv.mps"
+case_implicit_bv = checkFile "samples/mps/test-implicit-bv.mps"
+case_negative_upper_bound = checkFile "samples/mps/test-negative-upper-bound.mps"
+case_negative_upper_qcp = checkFile "samples/mps/test-qcp.mps"
+case_lazy_constraints = checkFile "samples/mps/test-lazy-constraints.mps"
+case_user_cuts = checkFile "samples/mps/test-user-cuts.mps"
 
 ------------------------------------------------------------------------
 -- Sample data
@@ -51,14 +66,19 @@ testdata = unlines
 
 checkFile :: FilePath -> Assertion
 checkFile fname = do
-  _ <- parseFile def fname
-  return ()
+  lp <- parseFile def fname
+  case render def lp of
+    Left err -> assertFailure ("render failure: " ++ err)
+    Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def fname str
 
 checkString :: String -> String -> Assertion
 checkString name str = do
   case parseString def name str of
     Left err -> assertFailure (show err)
-    Right lp -> return ()
+    Right lp ->
+      case render def lp of
+        Left err -> assertFailure ("render failure: " ++ err)
+        Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def name str
 
 ------------------------------------------------------------------------
 -- Test harness

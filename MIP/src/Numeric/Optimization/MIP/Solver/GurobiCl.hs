@@ -33,16 +33,17 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data GurobiCl
   = GurobiCl
   { gurobiClPath :: String
+  , gurobiClArgs :: [String]
   }
 
 instance Default GurobiCl where
   def = gurobiCl
 
 gurobiCl :: GurobiCl
-gurobiCl = GurobiCl "gurobi_cl"
+gurobiCl = GurobiCl "gurobi_cl" []
 
 instance IsSolver GurobiCl IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob of
       Left err -> ioError $ userError err
       Right lp -> do
@@ -52,10 +53,18 @@ instance IsSolver GurobiCl IO where
           withSystemTempFile "gurobi.sol" $ \fname2 h2 -> do
             hClose h2
             statusRef <- newIORef MIP.StatusUnknown
-            let args = ["ResultFile=" ++ fname2]
+            let args = gurobiClArgs solver
+                    ++ ["ResultFile=" ++ fname2]
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["TimeLimit=" ++ show sec])
+                    ++ (case solveTol opt of
+                          Nothing -> []
+                          Just tol ->
+                            [ "IntFeasTol=" ++ show (MIP.integralityTol tol)
+                            , "FeasibilityTol=" ++ show (MIP.feasibilityTol tol)
+                            , "OptimalityTol=" ++ show (MIP.optimalityTol tol)
+                            ])
                     ++ [fname1]
                 onGetLine s = do
                   case s of
@@ -67,7 +76,7 @@ instance IsSolver GurobiCl IO where
                     _ -> return ()
                   solveLogger opt s
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (gurobiClPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (gurobiClPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do

@@ -48,8 +48,18 @@ flags:
     manual: True
     default: False
 
+  TestHiGHS:
+    description: run test cases that depend on highs command
+    manual: True
+    default: False
+
   TestLPSolve:
     description: run test cases that depend on lp_solve command
+    manual: True
+    default: False
+
+  TestPrintemps:
+    description: run test cases that depend on mps_solver.exe command of printemps
     manual: True
     default: False
 
@@ -59,7 +69,7 @@ flags:
     default: False
 
 dependencies:
-- base >=4.9 && <5
+- base >=4.12 && <5
 - containers >=0.5.0
 - data-default-class
 - lattices
@@ -73,11 +83,13 @@ library:
   other-extensions:
   - CPP
   dependencies:
+  - aeson >=1.4.2.0
   - extended-reals >=0.1 && <1.0
   - filepath
+  - hashable >=1.2.7.0 && <1.6.0.0
   - intern >=0.9.1.2 && <1.0.0.0
-  - megaparsec >=5 && <10
-  - mtl >=2.1.2
+  - megaparsec >=7 && <10
+  - mtl >=2.1.2 && <2.4
   - OptDir
   - process >=1.1.0.2
   - scientific
@@ -104,10 +116,14 @@ tests:
     source-dirs:         test
     dependencies:
     - MIP
+    - filepath
+    - HUnit
+    - quickcheck-instances >=0.3.19 && <0.4
     - tasty >=0.10.1
     - tasty-hunit >=0.9 && <0.11
-    - tasty-quickcheck >=0.8 && <0.11
+    - tasty-quickcheck >=0.8 && <0.12
     - tasty-th
+    - temporary
     when:
       - condition: flag(TestCBC)
         then:
@@ -129,13 +145,28 @@ tests:
           cpp-options: "-DTEST_GUROBI_CL"
         else:
           cpp-options: " "
+      - condition: flag(TestHiGHS)
+        then:
+          cpp-options: "-DTEST_HIGHS"
+        else:
+          cpp-options: " "
       - condition: flag(TestLPSolve)
         then:
           cpp-options: "-DTEST_LP_SOLVE"
         else:
           cpp-options: " "
+      - condition: flag(TestPrintemps)
+        then:
+          cpp-options: "-DTEST_PRINTEMPS"
+        else:
+          cpp-options: " "
       - condition: flag(TestSCIP)
         then:
           cpp-options: "-DTEST_SCIP"
+        else:
+          cpp-options: " "
+      - condition: flag(WithZlib)
+        then:
+          cpp-options: "-DWITH_ZLIB"
         else:
           cpp-options: " "

@@ -4,21 +4,24 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Test.MIPSolver (mipSolverTestGroup) where
 
+import Control.Arrow ((***))
 import Control.Monad
 import Data.Default.Class
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver
+import IsClose
 
 -- ------------------------------------------------------------------------
 
 case_cbc :: Assertion
 case_cbc = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve cbc def prob
-  sol @?=
+  sol <- solve cbc def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -58,8 +61,8 @@ case_cbc_infeasible2 = do
 case_cplex :: Assertion
 case_cplex = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve cplex def prob
-  sol @?=
+  sol <- solve cplex def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -99,8 +102,8 @@ case_cplex_infeasible2 = do
 case_glpsol :: Assertion
 case_glpsol = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve glpsol def prob
-  sol @?=
+  sol <- solve glpsol def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -129,8 +132,8 @@ case_glpsol_infeasible = do
 case_gurobiCl :: Assertion
 case_gurobiCl = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve gurobiCl def prob
-  sol @?=
+  sol <- solve gurobiCl def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -167,11 +170,52 @@ case_gurobiCl_infeasible2 = do
 
 -- ------------------------------------------------------------------------
 
+case_highs :: Assertion
+case_highs = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  sol <- solve highs def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusOptimal
+    , MIP.solObjectiveValue = Just 122.5
+    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
+    }
+
+case_highs_unbounded :: Assertion
+case_highs_unbounded = do
+  prob <- MIP.readFile def "samples/lp/unbounded-ip.lp"
+  sol <- solve highs def prob
+  let status = MIP.solStatus sol
+  unless (status == MIP.StatusUnbounded || status == MIP.StatusFeasible || status == MIP.StatusInfeasibleOrUnbounded) $
+    assertFailure $ unlines $
+      [ "expected: StatusUnbounded, StatusFeasible or StatusInfeasibleOrUnbounded"
+      , " but got: " ++ show status
+      ]
+
+case_highs_infeasible :: Assertion
+case_highs_infeasible = do
+  prob <- MIP.readFile def "samples/lp/infeasible.lp"
+  sol <- solve highs def prob
+  MIP.solStatus sol @?= MIP.StatusInfeasible
+
+case_highs_infeasible2 :: Assertion
+case_highs_infeasible2 = do
+  prob <- MIP.readFile def "samples/lp/glpk-preprocess-bug.lp"
+  sol <- solve highs def prob
+  let status = MIP.solStatus sol
+  unless (status == MIP.StatusInfeasible || status == MIP.StatusInfeasibleOrUnbounded) $
+    assertFailure $ unlines $
+      [ "expected: StatusInfeasible or StatusInfeasibleOrUnbounded"
+      , " but got: " ++ show status
+      ]
+
+-- ------------------------------------------------------------------------
+
 case_lpSolve :: Assertion
 case_lpSolve = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve lpSolve def prob
-  sol @?=
+  sol <- solve lpSolve def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -208,11 +252,28 @@ case_lpSolve_infeasible2 = do
 
 -- ------------------------------------------------------------------------
 
+case_printemps :: Assertion
+case_printemps = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  sol <- solve printemps def{ solveTol = Just def } prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
+  MIP.solStatus sol @?= MIP.StatusFeasible
+  let vs = MIP.solVariables sol
+  Map.keysSet vs @?= Set.fromList ["x1", "x2", "x3", "x4"]
+  Just (sum [c * (vs Map.! v) | (c, v) <- [(1, "x1"), (2, "x2"), (3, "x3"), (1, "x4")]]) @?= MIP.solObjectiveValue sol 
+
+case_printemps_with_time_limit :: Assertion
+case_printemps_with_time_limit = do
+  prob <- MIP.readFile def "samples/lp/test.lp"
+  _ <- solve printemps def{ solveTimeLimit = Just 1 } prob{ MIP.varDomains = fmap ((const MIP.IntegerVariable) *** id) (MIP.varDomains prob) }
+  return ()
+
+-- ------------------------------------------------------------------------
+
 case_scip :: Assertion
 case_scip = do
   prob <- MIP.readFile def "samples/lp/test.lp"
-  sol <- solve scip def prob
-  sol @?=
+  sol <- solve scip def{ solveTol = Just def } prob
+  assertAllClose (def :: Tol Rational) (fmap toRational sol)
     MIP.Solution
     { MIP.solStatus = MIP.StatusOptimal
     , MIP.solObjectiveValue = Just 122.5
@@ -282,12 +343,26 @@ mipSolverTestGroup = testGroup "Test.MIPSolver" $ []
   , testCase "gurobiCl infeasible2" case_gurobiCl_infeasible2
   ]
 #endif
+#ifdef TEST_HIGHS
+  ++
+  [ testCase "highs" case_highs
+  , testCase "highs unbounded" case_highs_unbounded
+  , testCase "highs infeasible" case_highs_infeasible
+  , testCase "highs infeasible2" case_highs_infeasible2
+  ]
+#endif
 #ifdef TEST_LP_SOLVE
   ++
   [ testCase "lpSolve" case_lpSolve
   , testCase "lpSolve unbounded" case_lpSolve_unbounded
   , testCase "lpSolve infeasible" case_lpSolve_infeasible
   , testCase "lpSolve infeasible2" case_lpSolve_infeasible2
+  ]
+#endif
+#ifdef TEST_PRINTEMPS
+  ++
+  [ testCase "printemps" case_printemps
+  , testCase "printemps with time limit" case_printemps_with_time_limit
   ]
 #endif
 #ifdef TEST_SCIP

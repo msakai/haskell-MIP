@@ -31,16 +31,17 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 data CBC
   = CBC
   { cbcPath :: String
+  , cbcArgs :: [String]
   }
 
 instance Default CBC where
   def = cbc
 
 cbc :: CBC
-cbc = CBC "cbc"
+cbc = CBC "cbc" []
 
 instance IsSolver CBC IO where
-  solve solver opt prob = do
+  solve' solver opt prob = do
     case LPFile.render def prob{ MIP.objectiveFunction = obj' } of
       Left err -> ioError $ userError err
       Right lp -> do
@@ -49,14 +50,22 @@ instance IsSolver CBC IO where
           hClose h1
           withSystemTempFile "cbc.sol" $ \fname2 h2 -> do
             hClose h2
-            let args = [fname1]
+            let args = cbcArgs solver
+                    ++ [fname1]
                     ++ (case solveTimeLimit opt of
                           Nothing -> []
                           Just sec -> ["sec", show sec])
+                    ++ (case solveTol opt of
+                          Nothing -> []
+                          Just tol ->
+                            [ "integerTolerance", show (MIP.integralityTol tol)
+                            , "primalTolerance", show (MIP.feasibilityTol tol)
+                            , "dualTolerance", show (MIP.optimalityTol tol)
+                            ])
                     ++ ["solve", "solu", fname2]
                 onGetLine = solveLogger opt
                 onGetErrorLine = solveErrorLogger opt
-            exitcode <- runProcessWithOutputCallback (cbcPath solver) args "" onGetLine onGetErrorLine
+            exitcode <- runProcessWithOutputCallback (cbcPath solver) args Nothing "" onGetLine onGetErrorLine
             case exitcode of
               ExitFailure n -> ioError $ userError $ "exit with " ++ show n
               ExitSuccess -> do
