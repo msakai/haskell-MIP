@@ -120,7 +120,7 @@ jobs:
         name: Setup Conda
         if: contains(matrix.flags, '--flag MIP:TestGurobiCl') || contains(matrix.flags, '--flag MIP:TestCPLEX')
         with:
-          python-version: 3.12
+          python-version: 3.11
           conda-channels: gurobi, ibmdecisionoptimization
 
       - name: Install packages (Gurobi)
