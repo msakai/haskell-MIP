@@ -121,7 +121,7 @@ jobs:
         if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
         with:
           python-version: 3.12
-          conda-channels: 'http://conda.anaconda.org/gurobi'
+          conda-channels: gurobi
 
       - name: Install Gurobi
         if: contains(matrix.flags, '--flag MIP:TestGurobiCl')
