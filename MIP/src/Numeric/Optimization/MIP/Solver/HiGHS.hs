@@ -27,6 +27,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @highs@ command from [HiGHS](https://github.com/ERGO-Code/HiGHS).
+--
+-- Use 'highs' and record update syntax to modify its field.
 data HiGHS
   = HiGHS
   { highsPath :: String
@@ -36,6 +39,7 @@ data HiGHS
 instance Default HiGHS where
   def = highs
 
+-- | Default value of t'HiGHS'
 highs :: HiGHS
 highs = HiGHS "highs" []
 

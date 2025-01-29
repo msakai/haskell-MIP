@@ -35,12 +35,14 @@ import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver.Base
 import qualified Math.Programming.Glpk.Header as Raw
 
+-- | A solver instance for using [GLPK (GNU Linear Programming Kit)](https://www.gnu.org/software/glpk/) as a library
 data GLPK
   = GLPK
 
 instance Default GLPK where
   def = GLPK
 
+-- | Default value of t'GLPK'
 glpk :: GLPK
 glpk = GLPK
 

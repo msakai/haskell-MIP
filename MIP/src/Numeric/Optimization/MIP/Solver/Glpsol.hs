@@ -30,6 +30,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @glpsol@ command from [GLPK (GNU Linear Programming Kit)](https://www.gnu.org/software/glpk/).
+--
+-- Use 'glpsol' and record update syntax to modify its field.
 data Glpsol
   = Glpsol
   { glpsolPath :: String
@@ -39,6 +42,7 @@ data Glpsol
 instance Default Glpsol where
   def = glpsol
 
+-- | Default value of t'Glpsol'
 glpsol :: Glpsol
 glpsol = Glpsol "glpsol" []
 

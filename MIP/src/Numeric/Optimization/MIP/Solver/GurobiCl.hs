@@ -30,6 +30,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @gurobi_cl@ command from [Gurobi Optimizer](https://www.gurobi.com/solutions/gurobi-optimizer/).
+--
+-- Use 'gurobiCl' and record update syntax to modify its field.
 data GurobiCl
   = GurobiCl
   { gurobiClPath :: String
@@ -39,6 +42,7 @@ data GurobiCl
 instance Default GurobiCl where
   def = gurobiCl
 
+-- | Default value of t'GurobiCl'
 gurobiCl :: GurobiCl
 gurobiCl = GurobiCl "gurobi_cl" []
 

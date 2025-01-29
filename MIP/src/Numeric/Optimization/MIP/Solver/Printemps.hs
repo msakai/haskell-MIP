@@ -33,6 +33,9 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 import System.Exit
 import System.FilePath ((</>))
 
+-- | A solver instance for calling @mps_solver.exe@ command from [PRINTEMPS](https://snowberryfield.github.io/printemps/).
+--
+-- Use 'printemps' and record update syntax to modify its field.
 data Printemps
   = Printemps
   { printempsPath :: String
@@ -42,6 +45,7 @@ data Printemps
 instance Default Printemps where
   def = printemps
 
+-- | Default value of t'Printemps'
 printemps :: Printemps
 printemps = Printemps "mps_solver.exe" []
 

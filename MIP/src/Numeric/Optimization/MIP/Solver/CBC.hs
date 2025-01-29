@@ -28,6 +28,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.CBC as CBCSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @cbc@ command from [CBC (COIN-OR Branch-and-Cut solver)](https://github.com/coin-or/Cbc).
+--
+-- Use 'cbc' and record update syntax to modify its field.
 data CBC
   = CBC
   { cbcPath :: String
@@ -37,6 +40,7 @@ data CBC
 instance Default CBC where
   def = cbc
 
+-- | Default value of t'CBC'
 cbc :: CBC
 cbc = CBC "cbc" []
 

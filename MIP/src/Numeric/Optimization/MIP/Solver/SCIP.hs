@@ -28,6 +28,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.SCIP as ScipSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @scip@ command from [SCIP Optimization Suite](https://www.scipopt.org/).
+--
+-- Use 'scip' and record update syntax to modify its field.
 data SCIP
   = SCIP
   { scipPath :: String
@@ -38,6 +41,7 @@ data SCIP
 instance Default SCIP where
   def = scip
 
+-- | Default value of t'SCIP'
 scip :: SCIP
 scip = SCIP "scip" [] []
 
