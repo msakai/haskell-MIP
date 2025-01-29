@@ -21,33 +21,12 @@
 -----------------------------------------------------------------------------
 module Numeric.Optimization.MIP.Base
   (
-  -- * The MIP Problem type
+  -- * Mixed-Integer Programming (MIP) problem specification
+
+  -- ** MIP problems
     Problem (..)
-  , varTypes
-  , varType
-  , varBounds
-  , Label
 
-  -- * Variables
-  , Var (Var)
-  , varName
-  , toVar
-  , fromVar
-
-  -- ** Variable types
-  , VarType (..)
-  , getVarType
-
-  -- ** Variable bounds
-  , BoundExpr
-  , Extended (..)
-  , Bounds
-  , defaultBounds
-  , defaultLB
-  , defaultUB
-  , getBounds
-
-  -- ** Variable getters
+  -- *** Set of variables
   , variables
   , continuousVariables
   , integerVariables
@@ -55,27 +34,54 @@ module Numeric.Optimization.MIP.Base
   , semiContinuousVariables
   , semiIntegerVariables
 
-  -- * Expressions
+  -- *** Variable's attributes
+  , varTypes
+  , varType
+  , getVarType
+  , varBounds
+  , getBounds
+
+  -- ** Variables
+  , Var (Var)
+  , varName
+  , toVar
+  , fromVar
+
+  -- *** Variable types
+  , VarType (..)
+
+  -- *** Variable bounds
+  , BoundExpr
+  , Extended (..)
+  , Bounds
+  , defaultBounds
+  , defaultLB
+  , defaultUB
+
+  -- ** Labels
+  , Label
+
+  -- ** Expressions
   , Expr (Expr)
   , varExpr
   , constExpr
   , terms
   , Term (..)
 
-  -- * Objective function
+  -- ** Objective function
   , OptDir (..)
   , ObjectiveFunction (..)
 
-  -- * Constraints
+  -- ** Constraints
 
-  -- ** Linear (or Quadratic or Polynomial) constraints
+  -- *** Linear (or Quadratic or Polynomial) constraints
   , Constraint (..)
   , (.==.)
   , (.<=.)
   , (.>=.)
   , RelOp (..)
 
-  -- ** SOS constraints
+  -- *** SOS constraints
   , SOSType (..)
   , SOSConstraint (..)
 
@@ -89,7 +95,7 @@ module Numeric.Optimization.MIP.Base
   , zeroTol
   , Eval (..)
 
-  -- * File I/O options
+  -- * File I/O
   , FileOptions (..)
   , WriteSetting (..)
 
@@ -144,6 +150,7 @@ data Problem c
   , userCuts :: [Constraint c]
     -- ^ User cuts
   , varDomains :: Map Var (VarType, Bounds c)
+    -- ^ Variable types and their bounds
   }
   deriving (Show, Eq, Ord)
 
@@ -199,7 +206,7 @@ type Label = T.Text
 
 -- ---------------------------------------------------------------------------
 
--- | variables
+-- | Variables used in problems
 newtype Var = Var' InternedText
   deriving Eq
 
@@ -377,20 +384,21 @@ instance Functor ObjectiveFunction where
 
 -- | Constraint
 --
--- In the most general case, of the form @x = v → L ≤ e ≤ U@.
+-- In the most general case, it is of the form @x = v → L ≤ e ≤ U@.
 data Constraint c
   = Constraint
   { constrLabel     :: Maybe Label
     -- ^ name of the constraint
   , constrIndicator :: Maybe (Var, c)
-    -- ^ @x = v@ (v is 0 or 1)
+    -- ^ @x = v@ (v is either 0 or 1)
   , constrExpr      :: Expr c
-    -- ^ @e@
+    -- ^ expression @e@
   , constrLB        :: BoundExpr c
-    -- ^ @L@
+    -- ^ lower bound @L@
   , constrUB        :: BoundExpr c
-    -- ^ @U@
+    -- ^ upper bound @U@
   , constrIsLazy    :: Bool
+    -- ^ if it is set to @True@, solver can delay adding the constraint until the constraint is violated.
   }
   deriving (Eq, Ord, Show)
 
