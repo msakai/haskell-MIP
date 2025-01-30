@@ -30,6 +30,9 @@ import Numeric.Optimization.MIP.Solver.Base
 import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @cplex@ command from [IBM ILOG CPLEX Optimization Studio](https://www.ibm.com/products/ilog-cplex-optimization-studio).
+--
+-- Use 'cplex' and record update syntax to modify its fields.
 data CPLEX
   = CPLEX
   { cplexPath :: String
@@ -40,6 +43,7 @@ data CPLEX
 instance Default CPLEX where
   def = cplex
 
+-- | Default value of t'CPLEX'.
 cplex :: CPLEX
 cplex = CPLEX "cplex" [] []
 

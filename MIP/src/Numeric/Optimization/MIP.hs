@@ -20,11 +20,84 @@
 -----------------------------------------------------------------------------
 module Numeric.Optimization.MIP
   (
-  -- * The MIP Problem/Solution types
-    module Numeric.Optimization.MIP.Base
+  -- * Mixed-Integer Programming (MIP) problem specification
+
+  -- ** MIP problems
+    Problem (..)
+
+  -- *** Set of variables
+  , variables
+  , continuousVariables
+  , integerVariables
+  , binaryVariables
+  , semiContinuousVariables
+  , semiIntegerVariables
+
+  -- *** Variable's attributes
+  , varTypes
+  , varType
+  , getVarType
+  , varBounds
+  , getBounds
+
+  -- ** Variables
+  , Var (Var)
+  , varName
+  , toVar
+  , fromVar
+
+  -- *** Variable types
+  , VarType (..)
+
+  -- *** Variable bounds
+  , BoundExpr
+  , Extended (..)
+  , Bounds
+  , defaultBounds
+  , defaultLB
+  , defaultUB
+
+  -- ** Labels
+  , Label
+
+  -- ** Expressions
+  , Expr (Expr)
+  , varExpr
+  , constExpr
+  , terms
+  , Term (..)
+
+  -- ** Objective function
+  , OptDir (..)
+  , ObjectiveFunction (..)
+
+  -- ** Constraints
+
+  -- *** Linear (or Quadratic or Polynomial) constraints
+  , Constraint (..)
+  , (.==.)
+  , (.<=.)
+  , (.>=.)
+  , RelOp (..)
+
+  -- *** SOS constraints
+  , SOSType (..)
+  , SOSConstraint (..)
+
+  -- * Solutions
+  , Solution (..)
+  , Status (..)
+  , meetStatus
+
+  -- * Evaluation
+  , Tol (..)
+  , zeroTol
+  , Eval (..)
 
   -- * File I/O
   -- $IO
+  , FileOptions (..)
+  , WriteSetting (..)
 
   -- ** Reading problem files
   , readFile
@@ -40,6 +113,11 @@ module Numeric.Optimization.MIP
   , writeMPSFile
   , toLPString
   , toMPSString
+
+  -- * Utilities
+  , Default (..)
+  , Variables (..)
+  , intersectBounds
   ) where
 
 import Prelude hiding (readFile, writeFile)

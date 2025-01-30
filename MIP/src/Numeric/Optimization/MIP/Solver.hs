@@ -11,7 +11,11 @@
 --
 -----------------------------------------------------------------------------
 module Numeric.Optimization.MIP.Solver
-  ( module Numeric.Optimization.MIP.Solver.Base
+  (
+  -- * Solver type
+    IsSolver (..)
+  , SolveOptions (..)
+  -- * Individual solvers
   , module Numeric.Optimization.MIP.Solver.CBC
   , module Numeric.Optimization.MIP.Solver.CPLEX
   , module Numeric.Optimization.MIP.Solver.Glpsol
@@ -20,6 +24,8 @@ module Numeric.Optimization.MIP.Solver
   , module Numeric.Optimization.MIP.Solver.LPSolve
   , module Numeric.Optimization.MIP.Solver.Printemps
   , module Numeric.Optimization.MIP.Solver.SCIP
+  -- * Utilities
+  , Default (..)
   ) where
 
 import Numeric.Optimization.MIP.Solver.Base hiding (solve')

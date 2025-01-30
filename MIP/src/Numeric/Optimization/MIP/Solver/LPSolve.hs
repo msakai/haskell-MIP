@@ -32,6 +32,9 @@ import qualified Numeric.Optimization.MIP.MPSFile as MPSFile
 import Numeric.Optimization.MIP.Solver.Base
 import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallback)
 
+-- | A solver instance for calling @lp_solve@ command from [lp_solve](https://lpsolve.sourceforge.net/5.5/) package.
+--
+-- Use 'lpSolve' and record update syntax to modify its field.
 data LPSolve
   = LPSolve
   { lpSolvePath :: String
@@ -41,6 +44,7 @@ data LPSolve
 instance Default LPSolve where
   def = lpSolve
 
+-- | Default value of t'LPSolve'
 lpSolve :: LPSolve
 lpSolve = LPSolve "lp_solve" []
 
