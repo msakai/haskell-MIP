@@ -15,6 +15,7 @@
   * Fix to print the right-hand side of indicators as integers when possible in LP files
   * Accept numbers other than 0 or 1 as the right-hand side of indicators in LP files
   * Add `optMPSWriteObjSense` to `FileOptions`
+  * Add `optMPSWriteObjName` to `FileOptions`
 * Solver supports
   * Add omitted zeroes to solutions (thanks to @dpvanbalen)
   * Allow passing arguments solver executables

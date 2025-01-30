@@ -728,9 +728,26 @@ data FileOptions
   { optFileEncoding :: Maybe TextEncoding
     -- ^ Text encoding used for file input/output
   , optMPSWriteObjSense :: WriteSetting
-    -- ^ The original MPS file format does not have information about the direction of the objective function.
-    -- The @OBJSENSE@ section is added as an extention, but not all solvers support it.
-    -- This option controls whether the @OBJSENSE@ sections are output.
+    -- ^ @OBJSENSE@ section in MPS file is an extention of MPS file
+    -- format for specifying the direction of the objective function
+    -- in MPS file. But not all solvers support it (e.g. GLPK-4.48
+    -- does not support it).
+    --
+    -- This option controls whether the @OBJSENSE@ sections is written.
+    -- If 'WriteIfNotDefault' is used, @OBJSENSE@ is written when the
+    -- objective is maximization and @OBJSENSE@ is not written written
+    -- when the objective is minimizing.
+    --
+    -- (Default: 'WriteIfNotDefault')
+  , optMPSWriteObjName :: Bool
+    -- ^ @OBJNAME@ section is an extention of MPS file format for
+    -- selecting an objective function from among the free rows within
+    -- a MPS file. Not all solver support it (e.g. GLPK-4.48
+    -- does not support @OBJNAME@ it).
+    --
+    -- This option controls whether the @OBJNAME@ section is written.
+    --
+    -- (Default: 'True')
   } deriving (Show)
 
 instance Default FileOptions where
@@ -738,6 +755,7 @@ instance Default FileOptions where
     FileOptions
     { optFileEncoding = Nothing
     , optMPSWriteObjSense = WriteIfNotDefault
+    , optMPSWriteObjName = True
     }
 
 -- | Options for writing something of not

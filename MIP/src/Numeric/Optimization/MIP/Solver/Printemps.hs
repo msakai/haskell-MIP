@@ -81,7 +81,7 @@ instance IsSolver Printemps IO where
         option = Map.insert "general" (J.toJSON general) orig_option
 
     withSystemTempDirectory "printemps" $ \path ->
-      case MPSFile.render def{ optMPSWriteObjSense = WriteIfNotDefault } prob'' of
+      case MPSFile.render def{ optMPSWriteObjSense = WriteIfNotDefault, optMPSWriteObjName = False } prob'' of
         Left err -> ioError $ userError err
         Right s -> do
           let problem_file = path </> "input.mps"
