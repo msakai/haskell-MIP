@@ -2,6 +2,8 @@
 
 ## Unreleased changes
 
+## 0.2.0.0 (2025-02-03)
+
 * `Problem` type
   * Merge `varType` and `varBounds` fields into `varDomains` field 
   * Rename `varType` into `varTypes` and deprecate `varType`
