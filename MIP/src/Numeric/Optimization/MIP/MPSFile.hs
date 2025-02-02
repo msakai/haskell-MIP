@@ -609,18 +609,16 @@ render' opt mip = do
   -- OBJSENSE section
   when (MIP.optMPSWriteObjSense opt == MIP.WriteAlways ||
         MIP.optMPSWriteObjSense opt == MIP.WriteIfNotDefault && dir /= OptMin) $ do
-    -- Note: GLPK-4.48 does not support this section.
     writeSectionHeader "OBJSENSE"
     case dir of
       OptMin -> writeFields ["MIN"]
       OptMax -> writeFields ["MAX"]
 
-{-
   -- OBJNAME section
   -- Note: GLPK-4.48 does not support this section.
-  writeSectionHeader "OBJNAME"
-  writeFields [objName]
--}
+  when (MIP.optMPSWriteObjName opt) $ do
+    writeSectionHeader "OBJNAME"
+    writeFields [objName]
 
   let splitRange c =
         case (MIP.constrLB c, MIP.constrUB c) of
