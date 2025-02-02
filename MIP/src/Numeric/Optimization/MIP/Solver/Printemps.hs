@@ -35,6 +35,8 @@ import System.FilePath ((</>))
 
 -- | A solver instance for calling @mps_solver.exe@ command from [PRINTEMPS](https://snowberryfield.github.io/printemps/).
 --
+-- It requires PRINTEMPS version 2.6.0 or later.
+--
 -- Use 'printemps' and record update syntax to modify its field.
 data Printemps
   = Printemps
@@ -47,7 +49,7 @@ instance Default Printemps where
 
 -- | Default value of t'Printemps'
 printemps :: Printemps
-printemps = Printemps "mps_solver.exe" []
+printemps = Printemps "mps_solver" []
 
 instance IsSolver Printemps IO where
   solve' solver opt prob = do
@@ -57,11 +59,6 @@ instance IsSolver Printemps IO where
                       Just s | not (T.null s) -> Just s
                       _ -> Just "problem"
                 }
-        obj = objectiveFunction prob'
-        (prob'', postProcess) =
-          case objDir obj of
-            OptMin -> (prob', id)
-            OptMax -> (prob'{ objectiveFunction = obj{ objDir = OptMin, objExpr = negate (objExpr obj) } }, negate)
 
     let (orig_option_file, args') = removeOptionArgs (printempsArgs solver)
     orig_option <-
@@ -85,7 +82,7 @@ instance IsSolver Printemps IO where
         option = Map.insert "general" (J.toJSON general) orig_option
 
     withSystemTempDirectory "printemps" $ \path ->
-      case MPSFile.render def{ optMPSWriteObjSense = WriteIfNotDefault, optMPSWriteObjName = False } prob'' of
+      case MPSFile.render def{ optMPSWriteObjName = False } prob' of
         Left err -> ioError $ userError err
         Right s -> do
           let problem_file = path </> "input.mps"
@@ -100,8 +97,7 @@ instance IsSolver Printemps IO where
           if exitcode /= ExitSuccess then do
             return $ def{ solStatus = StatusUnknown }
           else do
-            sol <- PrintempsSol.readFile (path </> "incumbent.json")
-            return $ sol{ solObjectiveValue = fmap postProcess (solObjectiveValue sol) }
+            PrintempsSol.readFile (path </> "incumbent.json")
 
 removeOptionArgs :: [String] -> (Maybe FilePath, [String])
 removeOptionArgs = f Nothing []
