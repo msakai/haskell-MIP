@@ -10,6 +10,8 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 - doc-images/MIP-Status-diagram.tex
+- samples/mps/*.mps
+- samples/lp/*.lp
 extra-doc-files:
 - doc-images/MIP-Status-diagram.png
 

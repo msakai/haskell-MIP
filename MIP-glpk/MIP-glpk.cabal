@@ -20,6 +20,9 @@ build-type:     Simple
 extra-source-files:
     README.md
     ChangeLog.md
+    samples/lp/infeasible.lp
+    samples/lp/test.lp
+    samples/lp/unbounded-ip.lp
 
 source-repository head
   type: git

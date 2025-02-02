@@ -10,6 +10,7 @@ copyright:           "2020 Masahiro Sakai"
 extra-source-files:
 - README.md
 - ChangeLog.md
+- samples/lp/*.lp
 
 # Metadata used when publishing your package
 synopsis:            A GLPK backend to the MIP library.

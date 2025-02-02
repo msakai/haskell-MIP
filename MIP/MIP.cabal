@@ -21,6 +21,48 @@ extra-source-files:
     README.md
     ChangeLog.md
     doc-images/MIP-Status-diagram.tex
+    samples/mps/example2.mps
+    samples/mps/ind1.mps
+    samples/mps/intvar1.mps
+    samples/mps/intvar2.mps
+    samples/mps/quadobj1.mps
+    samples/mps/quadobj2.mps
+    samples/mps/ranges.mps
+    samples/mps/sc.mps
+    samples/mps/sos.mps
+    samples/mps/test-bounds-bv.mps
+    samples/mps/test-bounds-fixed.mps
+    samples/mps/test-bounds-free.mps
+    samples/mps/test-bounds-mi.mps
+    samples/mps/test-bounds-pl.mps
+    samples/mps/test-implicit-bv.mps
+    samples/mps/test-lazy-constraints.mps
+    samples/mps/test-negative-upper-bound.mps
+    samples/mps/test-qcp.mps
+    samples/mps/test-semicont.mps
+    samples/mps/test-semiint-sc.mps
+    samples/mps/test-semiint-si.mps
+    samples/mps/test-sos2.mps
+    samples/mps/test-user-cuts.mps
+    samples/lp/empty_obj_1.lp
+    samples/lp/empty_obj_2.lp
+    samples/lp/glpk-preprocess-bug.lp
+    samples/lp/infeasible.lp
+    samples/lp/test-bounds-fixed.lp
+    samples/lp/test-bounds-free.lp
+    samples/lp/test-indicator.lp
+    samples/lp/test-lazy-constraints.lp
+    samples/lp/test-problem-name.lp
+    samples/lp/test-qcp.lp
+    samples/lp/test-qcp2.lp
+    samples/lp/test-qp.lp
+    samples/lp/test-semicont.lp
+    samples/lp/test-semiint.lp
+    samples/lp/test-sos.lp
+    samples/lp/test-sos2.lp
+    samples/lp/test-user-cuts.lp
+    samples/lp/test.lp
+    samples/lp/unbounded-ip.lp
 extra-doc-files:
     doc-images/MIP-Status-diagram.png
 
