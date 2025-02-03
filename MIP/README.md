@@ -24,6 +24,8 @@ main = do
   MIP.writeFile MIP.def "test.mps" prob
 ```
 
+If you want to convert problems between from/to other formats (e.g. SAT, Max-SAT, Pseudo Boolean, SMT, QUBO), please consult [toysolver](https://hackage.haskell.org/package/toysolver) package.
+
 ### Solve LP file using the CbC solver
 
 
@@ -45,7 +47,7 @@ main = do
     putStrLn $ T.unpack (MIP.varName v) ++ " = " ++ show (MIP.solVariables sol Map.! v)
 ```
 
-### Construcing a problem instance and solving it using the CbC solver
+### Constructing a problem instance and solving it using the CbC solver
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
@@ -86,3 +88,5 @@ main = do
   forM_ (MIP.variables prob) $ \v -> do
     putStrLn $ T.unpack (MIP.varName v) ++ " = " ++ show (MIP.solVariables sol Map.! v)
 ```
+
+If you want to solve problems without explicit formulation (e.g. black box optimization), please consult [numeric-optimization](https://hackage.haskell.org/package/numeric-optimization) package.
