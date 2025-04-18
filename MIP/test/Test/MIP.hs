@@ -26,6 +26,7 @@ import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
 import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
 import qualified Numeric.Optimization.MIP.Solution.Gurobi as GurobiSol
 import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
+import qualified Numeric.Optimization.MIP.Solution.MIPLIB as MIPLIBSol
 import qualified Numeric.Optimization.MIP.Solution.Printemps as PrintempsSol
 import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
 
@@ -355,6 +356,34 @@ case_SCIPSol = do
     , MIP.solObjectiveValue = Just 122.5
     , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
     }
+
+case_MIPLIBSol :: Assertion
+case_MIPLIBSol = do
+  sol <- MIPLIBSol.readFile "samples/lp/test-solution-miplib.sol"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusFeasible
+    , MIP.solObjectiveValue = Just 122.5
+    , MIP.solVariables = Map.fromList [("x1", 40), ("x2", 10.5), ("x3", 19.5), ("x4", 3)]
+    }
+  withSystemTempDirectory "MIP" $ \dir -> do
+    MIPLIBSol.writeFile (dir </> "test.sol") sol
+    sol2 <- MIPLIBSol.readFile (dir </> "test.sol")
+    sol2 @?= sol
+
+case_MIPLIBSol_infeasible :: Assertion
+case_MIPLIBSol_infeasible = do
+  sol <- MIPLIBSol.readFile "samples/lp/test-solution-miplib-infeasible.sol"
+  sol @?=
+    MIP.Solution
+    { MIP.solStatus = MIP.StatusInfeasible
+    , MIP.solObjectiveValue = Nothing
+    , MIP.solVariables = Map.empty
+    }
+  withSystemTempDirectory "MIP" $ \dir -> do
+    MIPLIBSol.writeFile (dir </> "test.sol") sol
+    sol2 <- MIPLIBSol.readFile (dir </> "test.sol")
+    sol2 @?= sol
 
 mipTestGroup :: TestTree
 mipTestGroup = $(testGroupGenerator)
