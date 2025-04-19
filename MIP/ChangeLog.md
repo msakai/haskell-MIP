@@ -2,6 +2,8 @@
 
 ## Unreleased changes
 
+* Add `Numeric.Optimization.MIP.Solution.MIPLIB` module for reading/writing MIPLIB solution format
+
 ## 0.2.0.0 (2025-02-03)
 
 * `Problem` type

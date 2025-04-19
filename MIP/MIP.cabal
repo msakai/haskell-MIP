@@ -127,6 +127,7 @@ library
       Numeric.Optimization.MIP.Solution.GLPK
       Numeric.Optimization.MIP.Solution.Gurobi
       Numeric.Optimization.MIP.Solution.HiGHS
+      Numeric.Optimization.MIP.Solution.MIPLIB
       Numeric.Optimization.MIP.Solution.Printemps
       Numeric.Optimization.MIP.Solution.SCIP
       Numeric.Optimization.MIP.Solver
