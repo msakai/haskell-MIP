@@ -79,6 +79,7 @@ module Numeric.Optimization.MIP.Base
 
   -- *** Linear (or Quadratic or Polynomial) constraints
   , Constraint (..)
+  , constrBounds
   , (.==.)
   , (.<=.)
   , (.>=.)
@@ -97,6 +98,9 @@ module Numeric.Optimization.MIP.Base
   , Tol (..)
   , zeroTol
   , Eval (..)
+  , isInDomain
+  , isIntegral
+  , isInBounds
 
   -- * File I/O
   , FileOptions (..)
@@ -120,6 +124,7 @@ import Data.Hashable
 import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Maybe (isJust)
 import Data.Ord (comparing)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
@@ -411,6 +416,12 @@ data Constraint c
   }
   deriving (Eq, Ord, Show)
 
+-- | Lower- and Upper- bounds of a 'Constraint'
+--
+-- @since 0.2.1.0
+constrBounds :: Constraint c -> Bounds c
+constrBounds c = (constrLB c, constrUB c)
+
 -- | Equality constraint.
 (.==.) :: Num c => Expr c -> Expr c -> Constraint c
 lhs .==. rhs =
@@ -658,27 +669,39 @@ instance (Num r, Ord r) => Eval r (SOSConstraint r) where
 instance (RealFrac r) => Eval r (Problem r) where
   type Evaluated r (Problem r) = Maybe r
   eval tol sol prob = do
-    forM_ (Map.toList (varDomains prob)) $ \(v, (vt, bounds)) -> do
-      let val = eval tol sol v
-      case vt of
-        ContinuousVariable -> return ()
-        SemiContinuousVariable -> return ()
-        IntegerVariable -> guard $ isIntegral tol val
-        SemiIntegerVariable -> guard $ isIntegral tol val
-      case vt of
-        ContinuousVariable -> guard $ isInBounds tol bounds val
-        IntegerVariable -> guard $ isInBounds tol bounds val
-        SemiIntegerVariable -> guard $ isInBounds tol (0,0) val || isInBounds tol bounds val
-        SemiContinuousVariable -> guard $ isInBounds tol (0,0) val || isInBounds tol bounds val
+    forM_ (Map.toList (varDomains prob)) $ \(v, dom) -> do
+      guard $ isInDomain tol dom (eval tol sol v)
     forM_ (constraints prob) $ \constr -> do
       guard $ eval tol sol constr
     forM_ (sosConstraints prob) $ \constr -> do
       guard $ eval tol sol constr
     return $ eval tol sol (objectiveFunction prob)
 
+-- | Under the given tolerance, is the value included in the domain?
+--
+-- @since 0.2.1.0
+isInDomain :: RealFrac r => Tol r -> Domain r -> r -> Bool
+isInDomain tol (vt, bounds) x = isJust $ do
+  case vt of
+    ContinuousVariable -> return ()
+    SemiContinuousVariable -> return ()
+    IntegerVariable -> guard $ isIntegral tol x
+    SemiIntegerVariable -> guard $ isIntegral tol x
+  case vt of
+    ContinuousVariable -> guard $ isInBounds tol bounds x
+    IntegerVariable -> guard $ isInBounds tol bounds x
+    SemiIntegerVariable -> guard $ isInBounds tol (0,0) x || isInBounds tol bounds x
+    SemiContinuousVariable -> guard $ isInBounds tol (0,0) x || isInBounds tol bounds x
+
+-- | Under the given tolerance, is the value integral?
+--
+-- @since 0.2.1.0
 isIntegral :: RealFrac r => Tol r -> r -> Bool
 isIntegral tol x = abs (x - fromIntegral (floor (x + 0.5) :: Integer)) <= integralityTol tol
 
+-- | Under the given tolerance, is the value within the bounds?
+--
+-- @since 0.2.1.0
 isInBounds :: (Num r, Ord r) => Tol r -> Bounds r -> r -> Bool
 isInBounds tol (lb, ub) x =
   lb - Finite (feasibilityTol tol) <= Finite x &&
