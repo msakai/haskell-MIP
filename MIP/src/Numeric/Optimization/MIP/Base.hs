@@ -596,6 +596,7 @@ data Tol r
   , optimalityTol :: r
     -- ^ Feasiblity tolerance of dual constraints.
   }
+  deriving (Eq, Ord, Show)
 
 -- | Defautl is @1e-6@ for the feasibility and optimality tolerances, and @1e-5@ for the integrality tolerance.
 instance Fractional r => Default (Tol r) where
