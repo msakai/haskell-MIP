@@ -377,7 +377,7 @@ sosSection = do
     return $ MIP.SOSConstraint l t xs
   where
     typ = do
-      t <- tok $ (char' 's' >> ((char '1' >> return MIP.S1) <|> (char '2' >> return MIP.S2)))
+      t <- tok $ (char' 's' >> ((char '1' >> return MIP.SOS1) <|> (char '2' >> return MIP.SOS2)))
       tok (string "::")
       return t
 
@@ -533,7 +533,9 @@ render' mip = do
     writeString "SOS\n"
     forM_ (MIP.sosConstraints mip) $ \(MIP.SOSConstraint l typ xs) -> do
       renderLabel l
-      writeString $ fromString $ show typ
+      writeString $ case typ of
+        MIP.SOS1 -> "S1"
+        MIP.SOS2 -> "S2"
       writeString " ::"
       forM_ xs $ \(v, r) -> do
         writeString "  "

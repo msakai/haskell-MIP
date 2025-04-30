@@ -498,8 +498,8 @@ sosSection = do
   where
     entry = do
       spaces1'
-      typ <-  (try (string "S1") >> return MIP.S1)
-          <|> (string "S2" >> return MIP.S2)
+      typ <-  (try (string "S1") >> return MIP.SOS1)
+          <|> (string "S2" >> return MIP.SOS2)
       spaces1'
       name <- ident
       eol'
@@ -747,8 +747,8 @@ render' opt mip = do
     writeSectionHeader "SOS"
     forM_ (MIP.sosConstraints mip) $ \sos -> do
       let t = case MIP.sosType sos of
-                MIP.S1 -> "S1"
-                MIP.S2 -> "S2"
+                MIP.SOS1 -> "S1"
+                MIP.SOS2 -> "S2"
       writeFields $ t : maybeToList (MIP.sosLabel sos)
       forM_ (MIP.sosBody sos) $ \(var,val) -> do
         writeFields ["", MIP.varName var, showValue val]
