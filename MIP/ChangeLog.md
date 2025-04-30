@@ -3,6 +3,7 @@
 ## Unreleased changes
 
 * Add `Numeric.Optimization.MIP.Solution.MIPLIB` module for reading/writing MIPLIB solution format
+* Add `Domain` type
 
 ## 0.2.0.0 (2025-02-03)
 
