@@ -498,6 +498,13 @@ data SOSConstraint c
 instance Functor SOSConstraint where
   fmap f c = c{ sosBody = map (id *** f) (sosBody c) }
 
+instance Default (SOSConstraint c) where
+  def = SOSConstraint
+        { sosLabel = Nothing
+        , sosType = SOS1
+        , sosBody = []
+        }
+
 -- ---------------------------------------------------------------------------
 
 -- | MIP status with the following partial order:
