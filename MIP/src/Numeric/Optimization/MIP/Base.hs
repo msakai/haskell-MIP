@@ -79,6 +79,7 @@ module Numeric.Optimization.MIP.Base
 
   -- *** Linear (or Quadratic or Polynomial) constraints
   , Constraint (..)
+  , constrBounds
   , (.==.)
   , (.<=.)
   , (.>=.)
@@ -414,6 +415,12 @@ data Constraint c
     -- ^ if it is set to @True@, solver can delay adding the constraint until the constraint is violated.
   }
   deriving (Eq, Ord, Show)
+
+-- | Lower- and Upper- bounds of a 'Constraint'
+--
+-- @since 0.2.1.0
+constrBounds :: Constraint c -> Bounds c
+constrBounds c = (constrLB c, constrUB c)
 
 -- | Equality constraint.
 (.==.) :: Num c => Expr c -> Expr c -> Constraint c

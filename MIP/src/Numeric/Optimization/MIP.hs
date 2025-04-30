@@ -78,6 +78,7 @@ module Numeric.Optimization.MIP
 
   -- *** Linear (or Quadratic or Polynomial) constraints
   , Constraint (..)
+  , constrBounds
   , (.==.)
   , (.<=.)
   , (.>=.)
