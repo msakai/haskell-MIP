@@ -46,6 +46,9 @@ module Numeric.Optimization.MIP
   , toVar
   , fromVar
 
+  -- *** Variable domain
+  , Domain
+
   -- *** Variable types
   , VarType (..)
 

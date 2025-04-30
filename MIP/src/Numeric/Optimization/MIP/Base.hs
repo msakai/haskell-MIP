@@ -47,6 +47,9 @@ module Numeric.Optimization.MIP.Base
   , toVar
   , fromVar
 
+  -- *** Variable domain
+  , Domain
+
   -- *** Variable types
   , VarType (..)
 
@@ -149,8 +152,8 @@ data Problem c
     -- ^ Special ordered sets
   , userCuts :: [Constraint c]
     -- ^ User cuts
-  , varDomains :: Map Var (VarType, Bounds c)
-    -- ^ Variable types and their bounds
+  , varDomains :: Map Var (Domain c)
+    -- ^ Variable domains
   }
   deriving (Show, Eq, Ord)
 
@@ -247,6 +250,12 @@ toVar = fromString
 -- | convert a variable into a string
 fromVar :: Var -> String
 fromVar (Var s) = T.unpack s
+
+
+-- | Domain of a variable consists of variable type ('VarType') and bounds ('Bounds').
+--
+-- @since 0.2.1.0
+type Domain c = (VarType, Bounds c)
 
 -- | Type of variables
 --
