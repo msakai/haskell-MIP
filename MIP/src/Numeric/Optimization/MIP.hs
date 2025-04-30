@@ -96,6 +96,9 @@ module Numeric.Optimization.MIP
   , Tol (..)
   , zeroTol
   , Eval (..)
+  , isInDomain
+  , isIntegral
+  , isInBounds
 
   -- * File I/O
   -- $IO
