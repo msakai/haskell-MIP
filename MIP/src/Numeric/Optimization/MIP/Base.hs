@@ -86,7 +86,7 @@ module Numeric.Optimization.MIP.Base
   , RelOp (..)
 
   -- *** SOS constraints
-  , SOSType (..)
+  , SOSType (SOS1, SOS2, S1, S2)
   , SOSConstraint (..)
 
   -- * Solutions
@@ -470,9 +470,21 @@ data RelOp
 
 -- | types of SOS (special ordered sets) constraints
 data SOSType
-  = S1 -- ^ Type 1 SOS constraint
-  | S2 -- ^ Type 2 SOS constraint
+  = SOS1 -- ^ Type 1 SOS constraint
+  | SOS2 -- ^ Type 2 SOS constraint
   deriving (Eq, Ord, Enum, Show, Read)
+
+-- {-# DEPRECATED S1 "Use SOS1 instead" #-}
+-- | Alias of 'SOS1'
+pattern S1 :: SOSType
+pattern S1 = SOS1
+
+-- {-# DEPRECATED S2 "Use SOS2 instead" #-}
+-- | Alias of 'SOS2'
+pattern S2 :: SOSType
+pattern S2 = SOS2
+
+{-# COMPLETE S1, S2 #-}
 
 -- | SOS (special ordered sets) constraints
 data SOSConstraint c
@@ -644,8 +656,8 @@ instance (Num r, Ord r) => Eval r (SOSConstraint r) where
   type Evaluated r (SOSConstraint r) = Bool
   eval tol sol sos =
     case sosType sos of
-      S1 -> length [() | val <- body, val] <= 1
-      S2 -> f body
+      SOS1 -> length [() | val <- body, val] <= 1
+      SOS2 -> f body
     where
       body = map (not . isInBounds tol (0, 0) . eval tol sol . fst) $ sortBy (comparing snd) $ (sosBody sos)
       f [] = True

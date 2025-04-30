@@ -84,6 +84,22 @@ prop_status_meet_leq =
 instance Arbitrary MIP.Status where
   arbitrary = arbitraryBoundedEnum
 
+case_sos_pattern_synonym_pattern_match :: Assertion
+case_sos_pattern_synonym_pattern_match = do
+  case MIP.S1 of
+    MIP.SOS1 -> pure ()
+    MIP.SOS2 -> assertFailure "SOS2 should not match S1"
+  case MIP.S2 of
+    MIP.SOS1 -> assertFailure "SOS1 should not match S2"
+    MIP.SOS2 -> pure ()
+
+  case MIP.SOS1 of
+    MIP.S1 -> pure ()
+    MIP.S2 -> assertFailure "S2 should not match SOS1"
+  case MIP.SOS2 of
+    MIP.S1 -> assertFailure "S1 should not match SOS2"
+    MIP.S2 -> pure ()
+
 case_eval_expr :: Assertion
 case_eval_expr = do
   MIP.eval MIP.def sol (MIP.varExpr "x" + 2 * MIP.varExpr "y" :: MIP.Expr Rational) @?= 8
@@ -116,14 +132,14 @@ case_eval_sos_constraint = do
       constr1 =
         MIP.SOSConstraint
         { MIP.sosLabel = Nothing
-        , MIP.sosType = MIP.S1
+        , MIP.sosType = MIP.SOS1
         , MIP.sosBody = [("x1", 1), ("x2", 2), ("x3", 3)]
         }
   MIP.eval MIP.def (Map.fromList [("x1", 0 :: Double), ("x2", 0), ("x3", 0)]) constr1 @?= True
   MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 0), ("x3", 0)]) constr1 @?= True
   MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 1), ("x3", 0)]) constr1 @?= False
 
-  let constr2 = constr1{ MIP.sosType = MIP.S2 }
+  let constr2 = constr1{ MIP.sosType = MIP.SOS2 }
   MIP.eval MIP.def (Map.fromList [("x1", 0 :: Double), ("x2", 0), ("x3", 0)]) constr2 @?= True
   MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 0), ("x3", 0)]) constr2 @?= True
   MIP.eval MIP.def (Map.fromList [("x1", 1 :: Double), ("x2", 1), ("x3", 0)]) constr2 @?= True

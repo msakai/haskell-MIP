@@ -5,6 +5,7 @@
 * Add `Numeric.Optimization.MIP.Solution.MIPLIB` module for reading/writing MIPLIB solution format
 * Add `Domain` type
 * Add utility functions: `isInDomain`, `isIntegral`, `isInBounds`, and `constrBounds`
+* Rename `S1` and `S2` to `SOS1` and `SOS2` respectively. Old names are kept as pattern synonyms.
 
 ## 0.2.0.0 (2025-02-03)
 
