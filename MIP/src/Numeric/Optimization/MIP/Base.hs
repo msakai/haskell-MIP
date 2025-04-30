@@ -498,6 +498,13 @@ data SOSConstraint c
 instance Functor SOSConstraint where
   fmap f c = c{ sosBody = map (id *** f) (sosBody c) }
 
+instance Default (SOSConstraint c) where
+  def = SOSConstraint
+        { sosLabel = Nothing
+        , sosType = SOS1
+        , sosBody = []
+        }
+
 -- ---------------------------------------------------------------------------
 
 -- | MIP status with the following partial order:
@@ -596,6 +603,7 @@ data Tol r
   , optimalityTol :: r
     -- ^ Feasiblity tolerance of dual constraints.
   }
+  deriving (Eq, Ord, Show)
 
 -- | Defautl is @1e-6@ for the feasibility and optimality tolerances, and @1e-5@ for the integrality tolerance.
 instance Fractional r => Default (Tol r) where
