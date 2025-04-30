@@ -78,6 +78,7 @@ module Numeric.Optimization.MIP
 
   -- *** Linear (or Quadratic or Polynomial) constraints
   , Constraint (..)
+  , constrBounds
   , (.==.)
   , (.<=.)
   , (.>=.)
@@ -96,6 +97,9 @@ module Numeric.Optimization.MIP
   , Tol (..)
   , zeroTol
   , Eval (..)
+  , isInDomain
+  , isIntegral
+  , isInBounds
 
   -- * File I/O
   -- $IO
