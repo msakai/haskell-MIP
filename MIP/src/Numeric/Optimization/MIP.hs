@@ -105,6 +105,7 @@ module Numeric.Optimization.MIP
   -- $IO
   , FileOptions (..)
   , WriteSetting (..)
+  , ParseError
   , isGZipSupported
 
   -- ** Reading problem files
@@ -113,7 +114,6 @@ module Numeric.Optimization.MIP
   , readMPSFile
   , parseLPString
   , parseMPSString
-  , ParseError
 
   -- ** Generating problem files
   , writeFile
