@@ -5,7 +5,7 @@ cabal-version: 1.18
 -- see: https://github.com/sol/hpack
 
 name:           MIP
-version:        0.2.0.0
+version:        0.2.1.0
 synopsis:       Library for using Mixed Integer Programming (MIP)
 description:    Please see the README on GitHub at <https://github.com/msakai/haskell-MIP/tree/master/MIP#readme>
 category:       Math, Algorithms, Optimisation, Optimization
