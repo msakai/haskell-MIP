@@ -38,6 +38,7 @@ extra-source-files:
     samples/mps/test-implicit-bv.mps
     samples/mps/test-lazy-constraints.mps
     samples/mps/test-negative-upper-bound.mps
+    samples/mps/test-obj-offset.mps
     samples/mps/test-qcp.mps
     samples/mps/test-semicont.mps
     samples/mps/test-semiint-sc.mps

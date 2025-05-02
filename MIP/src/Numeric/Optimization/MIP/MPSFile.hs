@@ -311,13 +311,21 @@ parser = do
           , MIP.constrUB        = ub
           }
 
+  let objOffset =
+        case Map.lookup objrow rhss of
+          Nothing -> 0
+          Just c -> MIP.constExpr (-c)
+
   let mip =
         MIP.Problem
         { MIP.name                  = name
         , MIP.objectiveFunction     = def
             { MIP.objDir = objdir
             , MIP.objLabel = Just (unintern objrow)
-            , MIP.objExpr = MIP.Expr $ [MIP.Term c [col] | (col,m) <- Map.toList cols, c <- maybeToList (Map.lookup objrow m)] ++ qobj
+            , MIP.objExpr =
+                MIP.Expr [MIP.Term c [col] | (col,m) <- Map.toList cols, c <- maybeToList (Map.lookup objrow m)] +
+                MIP.Expr qobj +
+                objOffset
             }
         , MIP.constraints           = concatMap (f False) rows ++ concatMap (f True) lazycons
         , MIP.sosConstraints        = sos
@@ -590,7 +598,7 @@ writeChar c = tell $ B.singleton c
 -- | Render a problem into a 'TL.Text' containing MPS file data.
 render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
 render _ mip | not (checkAtMostQuadratic mip) = Left "Expression must be atmost quadratic"
-render opt mip = Right $ execM $ render' opt $ nameRows mip
+render opt mip = Right $ execM $ render' opt $ normalizeConstTerm $ nameRows mip
 
 render' :: MIP.FileOptions -> MIP.Problem Scientific -> M ()
 render' opt mip = do
@@ -677,6 +685,9 @@ render' opt mip = do
   -- RHS section
   let rs = [(fromJust $ MIP.constrLabel c, rhs) | c <- MIP.constraints mip ++ MIP.userCuts mip, let ((_,rhs),_) = splitRange c, rhs /= 0]
   writeSectionHeader "RHS"
+  case sum [d | MIP.Term d [] <- MIP.terms obj] of
+    0 -> pure ()
+    offset -> writeFields ["", "rhs", objName, showValue (- offset)]
   forM_ rs $ \(name, val) -> do
     writeFields ["", "rhs", name, showValue val]
 
@@ -886,8 +897,25 @@ checkAtMostQuadratic mip =  all (all f . MIP.terms) es
     es = MIP.objExpr (MIP.objectiveFunction mip) :
          [lhs | c <- MIP.constraints mip ++ MIP.userCuts mip, let lhs = MIP.constrExpr c]
     f :: MIP.Term r -> Bool
+    f (MIP.Term _ []) = True
     f (MIP.Term _ [_]) = True
     f (MIP.Term _ [_,_]) = True
     f _ = False
+
+normalizeConstTerm :: (Num r, Ord r) => MIP.Problem r -> MIP.Problem r
+normalizeConstTerm mip =
+  mip
+  { MIP.constraints = map f (MIP.constraints mip)
+  , MIP.userCuts = map f (MIP.userCuts mip)
+  }
+  where
+    f constr =
+      constr
+      { MIP.constrLB = MIP.constrLB constr - MIP.Finite offset
+      , MIP.constrUB = MIP.constrUB constr - MIP.Finite offset
+      , MIP.constrExpr = MIP.Expr [t | t@(MIP.Term _ (_:_)) <- MIP.terms (MIP.constrExpr constr)]
+      }
+      where
+        offset = sum [c | MIP.Term c [] <- MIP.terms (MIP.constrExpr constr)]
 
 -- ---------------------------------------------------------------------------
