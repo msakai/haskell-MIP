@@ -121,6 +121,11 @@ module Numeric.Optimization.MIP
   , toLPString
   , toMPSString
 
+  -- ** Reading/Writing solution files
+  , SolutionFormat (..)
+  , readSolution
+  , writeSolution
+
   -- * Utilities
   , Default (..)
   , Variables (..)
@@ -268,6 +273,25 @@ toLPString = LPFile.render
 -- | Generate a 'TL.Text' containing MPS file data.
 toMPSString :: FileOptions -> Problem Scientific -> Either String TL.Text
 toMPSString = MPSFile.render
+
+data SolutionFormat
+  = SolutionFormatCBC
+  | SolutionFormatCPLEX
+  | SolutionFormatGLPK
+  | SolutionFormatGurobi
+  | SolutionFormatHiGHS
+  | SolutionFormatMIPLIB
+  | SolutionFormatSCIP
+  deriving (Eq, Ord, Enum, Show)
+
+readSolution :: FileOptions -> SolutionFormat -> FilePath -> IO (Solution Scientific)
+readSolution opt format fname = do
+  case format of
+    
+
+writeSolution :: FileOptions -> SolutionFormat -> FilePath -> Solution Scientific -> IO ()
+writeSolution opt format fname = undefined
+
 
 -- $IO
 -- If this library is built with @WithZlib@ flag (enabled by default), 
