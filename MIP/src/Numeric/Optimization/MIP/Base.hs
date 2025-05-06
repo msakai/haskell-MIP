@@ -472,7 +472,7 @@ data RelOp
 data SOSType
   = SOS1 -- ^ Type 1 SOS constraint
   | SOS2 -- ^ Type 2 SOS constraint
-  deriving (Eq, Ord, Enum, Show, Read)
+  deriving (Eq, Ord, Enum, Bounded, Show, Read)
 
 -- {-# DEPRECATED S1 "Use SOS1 instead" #-}
 -- | Alias of 'SOS1'
