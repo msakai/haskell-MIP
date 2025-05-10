@@ -9,10 +9,12 @@ import Algebra.PartialOrd
 #if !MIN_VERSION_lattices(2,0,0)
 import Algebra.Lattice
 #endif
+import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.Maybe
 import qualified Data.Map as Map
+import qualified Data.Text.Lazy as TL
 import System.FilePath ((</>))
-import System.IO (utf8)
+import System.IO
 import System.IO.Temp
 import Test.QuickCheck.Instances.Text ()
 import Test.Tasty
@@ -29,6 +31,11 @@ import qualified Numeric.Optimization.MIP.Solution.HiGHS as HiGHSSol
 import qualified Numeric.Optimization.MIP.Solution.MIPLIB as MIPLIBSol
 import qualified Numeric.Optimization.MIP.Solution.Printemps as PrintempsSol
 import qualified Numeric.Optimization.MIP.Solution.SCIP as SCIPSol
+
+#ifdef WITH_ZLIB
+import qualified Codec.Compression.GZip as GZip
+#endif
+
 
 case_var_show :: Assertion
 case_var_show = show (MIP.Var "x") @?= show ("x" :: String)
@@ -217,10 +224,43 @@ case_file_io_lp = do
     MIP.writeFile opt (dir </> "test.lp") prob
     prob2 <- MIP.readFile opt (dir </> "test.lp")
     prob2 @?= prob
+    s <- BL.readFile (dir </> "test.lp")
+    case nativeNewline of
+      CRLF -> isCRLFByteString s @?= True
+      LF -> isLFByteString s @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just LF } (dir </> "test_lf.lp") prob
+    prob_lf <- MIP.readFile opt (dir </> "test_lf.lp")
+    prob_lf @?= prob
+    s_lf <- BL.readFile (dir </> "test_lf.lp")
+    isLFByteString s_lf @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just CRLF } (dir </> "test_crlf.lp") prob
+    prob_crlf <- MIP.readFile opt (dir </> "test_crlf.lp")
+    prob_crlf @?= prob
+    s_crlf <- BL.readFile (dir </> "test_crlf.lp")
+    isCRLFByteString s_crlf @?= True
+
 #ifdef WITH_ZLIB
     MIP.writeFile opt (dir </> "test.lp.gz") prob
-    prob3 <- MIP.readFile opt (dir </> "test.lp.gz")
-    prob3 @?= prob
+    prob_gz <- MIP.readFile opt (dir </> "test.lp.gz")
+    prob_gz @?= prob
+    s_gz <- GZip.decompress <$> BL.readFile (dir </> "test.lp.gz")
+    case nativeNewline of
+      CRLF -> isCRLFByteString s_gz @?= True
+      LF -> isLFByteString s_gz @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just LF } (dir </> "test_lf.lp.gz") prob
+    prob_lf_gz <- MIP.readFile opt (dir </> "test_lf.lp.gz")
+    prob_lf_gz @?= prob
+    s_lf_gz <- GZip.decompress <$> BL.readFile (dir </> "test_lf.lp.gz")
+    isLFByteString s_lf_gz @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just CRLF } (dir </> "test_crlf.lp.gz") prob
+    prob_crlf_gz <- MIP.readFile opt (dir </> "test_crlf.lp.gz")
+    prob_crlf_gz @?= prob
+    s_crlf_gz <- GZip.decompress <$> BL.readFile (dir </> "test_crlf.lp.gz")
+    isCRLFByteString s_crlf_gz @?= True
 #endif
 
 case_file_io_mps :: Assertion
@@ -231,11 +271,73 @@ case_file_io_mps = do
     MIP.writeFile opt (dir </> "test.mps") prob
     prob2 <- MIP.readFile opt (dir </> "test.mps")
     prob2 @?= prob
+    s <- BL.readFile (dir </> "test.mps")
+    case nativeNewline of
+      CRLF -> isCRLFByteString s @?= True
+      LF -> isLFByteString s @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just LF } (dir </> "test_lf.mps") prob
+    prob_lf <- MIP.readFile opt (dir </> "test_lf.mps")
+    prob_lf @?= prob
+    s_lf <- BL.readFile (dir </> "test_lf.mps")
+    isLFByteString s_lf @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just CRLF } (dir </> "test_crlf.mps") prob
+    prob_crlf <- MIP.readFile opt (dir </> "test_crlf.mps")
+    prob_crlf @?= prob
+    s_crlf <- BL.readFile (dir </> "test_crlf.mps")
+    isCRLFByteString s_crlf @?= True
+
 #ifdef WITH_ZLIB
     MIP.writeFile opt (dir </> "test.mps.gz") prob
     prob3 <- MIP.readFile opt (dir </> "test.mps.gz")
     prob3 @?= prob
+
+    s_gz <- GZip.decompress <$> BL.readFile (dir </> "test.mps.gz")
+    case nativeNewline of
+      CRLF -> isCRLFByteString s_gz @?= True
+      LF -> isLFByteString s_gz @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just LF } (dir </> "test_lf.mps.gz") prob
+    prob_lf_gz <- MIP.readFile opt (dir </> "test_lf.mps.gz")
+    prob_lf_gz @?= prob
+    s_lf_gz <- GZip.decompress <$> BL.readFile (dir </> "test_lf.mps.gz")
+    isLFByteString s_lf_gz @?= True
+
+    MIP.writeFile opt{ MIP.optNewline = Just CRLF } (dir </> "test_crlf.mps.gz") prob
+    prob_crlf_gz <- MIP.readFile opt (dir </> "test_crlf.mps.gz")
+    prob_crlf_gz @?= prob
+    s_crlf_gz <- GZip.decompress <$> BL.readFile (dir </> "test_crlf.mps.gz")
+    isCRLFByteString s_crlf_gz @?= True
 #endif
+
+case_toLPString :: Assertion
+case_toLPString = do
+  let opt = MIP.def{ MIP.optFileEncoding = Just utf8 }
+  prob <- MIP.readFile opt "samples/lp/test.lp"
+  case MIP.toLPString MIP.def prob of
+    Left err -> assertFailure ("toLPString failed: " ++ err)
+    Right s -> isLFText s @?= True
+
+case_toMPSString :: Assertion
+case_toMPSString = do
+  let opt = MIP.def{ MIP.optFileEncoding = Just utf8 }
+  prob <- MIP.readFile opt "samples/lp/test.lp"
+  case MIP.toMPSString MIP.def prob of
+    Left err -> assertFailure ("toMPSString failed: " ++ err)
+    Right s -> isLFText s @?= True
+
+isLFText :: TL.Text -> Bool
+isLFText s = not ('\r' `TL.elem` s)
+
+-- isCRLFText :: TL.Text -> Bool
+-- isCRLFText s = all (\(c1, c2) -> not (c2 == '\n') || c1 == '\r') $ TL.zip s (TL.tail s)
+
+isLFByteString :: BL.ByteString -> Bool
+isLFByteString s = '\r' `BL.notElem` s
+
+isCRLFByteString :: BL.ByteString -> Bool
+isCRLFByteString s = and $ BL.zipWith (\c1 c2 -> not (c2 == '\n') || c1 == '\r') s (BL.tail s)
 
 case_CBCSol :: Assertion
 case_CBCSol = do

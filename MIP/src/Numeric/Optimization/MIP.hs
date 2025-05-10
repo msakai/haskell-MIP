@@ -128,6 +128,7 @@ module Numeric.Optimization.MIP
   ) where
 
 import Prelude hiding (readFile, writeFile)
+import Control.Applicative
 import Control.Exception
 import Data.Char
 import Data.Scientific (Scientific)
@@ -230,14 +231,14 @@ getExt fname | (base, ext) <- splitExtension fname =
 -- | Generate LP file.
 writeLPFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeLPFile opt fname prob =
-  case LPFile.render opt prob of
+  case LPFile.render opt{ optNewline = optNewline opt <|> Just nativeNewline } prob of
     Left err -> ioError $ userError err
     Right s -> writeTextFile opt fname s
 
 -- | Generate MPS file.
 writeMPSFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeMPSFile opt fname prob =
-  case MPSFile.render opt prob of
+  case MPSFile.render opt{ optNewline = optNewline opt <|> Just nativeNewline } prob of
     Left err -> ioError $ userError err
     Right s -> writeTextFile opt fname s
 
@@ -245,6 +246,7 @@ writeTextFile :: FileOptions -> FilePath -> TL.Text -> IO ()
 writeTextFile opt fname s = do
   let writeSimple = do
         withFile fname WriteMode $ \h -> do
+          hSetNewlineMode h noNewlineTranslation
           case optFileEncoding opt of
             Nothing -> return ()
             Just enc -> hSetEncoding h enc
@@ -263,11 +265,11 @@ writeTextFile opt fname s = do
 
 -- | Generate a 'TL.Text' containing LP file data.
 toLPString :: FileOptions -> Problem Scientific -> Either String TL.Text
-toLPString = LPFile.render
+toLPString opt = LPFile.render opt{ optNewline = optNewline opt <|> Just LF }
 
 -- | Generate a 'TL.Text' containing MPS file data.
 toMPSString :: FileOptions -> Problem Scientific -> Either String TL.Text
-toMPSString = MPSFile.render
+toMPSString opt = MPSFile.render opt{ optNewline = optNewline opt <|> Just LF }
 
 -- $IO
 -- If this library is built with @WithZlib@ flag (enabled by default), 

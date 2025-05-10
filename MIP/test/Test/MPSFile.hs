@@ -6,10 +6,13 @@ import Data.Default.Class
 import Data.Either
 import Data.List
 import Data.Maybe
+import qualified Data.Text.Lazy as TL
+import System.IO
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.HUnit
 import Test.Tasty.TH
+import Numeric.Optimization.MIP.Base (FileOptions (..))
 import Numeric.Optimization.MIP.MPSFile
 
 case_testdata = checkString "testdata" testdata
@@ -37,6 +40,20 @@ case_negative_upper_qcp = checkFile "samples/mps/test-qcp.mps"
 case_obj_offset = checkFile "samples/mps/test-obj-offset.mps"
 case_lazy_constraints = checkFile "samples/mps/test-lazy-constraints.mps"
 case_user_cuts = checkFile "samples/mps/test-user-cuts.mps"
+
+case_render_newline :: Assertion
+case_render_newline = do
+  let Right prob = parseString def "testdata" testdata
+  case render def{ optNewline = Just LF } prob of
+    Left err -> assertFailure ("render failure: " ++ err)
+    Right s -> do
+      parseString def "testdata2" s @?= Right prob
+      isLFText s @?= True
+  case render def{ optNewline = Just CRLF } prob of
+    Left err -> assertFailure ("render failure: " ++ err)
+    Right s -> do
+      parseString def "testdata2" s @?= Right prob
+      isCRLFText s @?= True
 
 ------------------------------------------------------------------------
 -- Sample data
@@ -80,6 +97,12 @@ checkString name str = do
       case render def lp of
         Left err -> assertFailure ("render failure: " ++ err)
         Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def name str
+
+isLFText :: TL.Text -> Bool
+isLFText s = not ('\r' `TL.elem` s)
+
+isCRLFText :: TL.Text -> Bool
+isCRLFText s = all (\(c1, c2) -> not (c2 == '\n') || c1 == '\r') $ TL.zip s (TL.tail s)
 
 ------------------------------------------------------------------------
 -- Test harness

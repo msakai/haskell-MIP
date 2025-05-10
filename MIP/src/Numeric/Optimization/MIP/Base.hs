@@ -136,7 +136,7 @@ import Data.ExtendedReal
 import Data.OptDir
 import Data.String
 import qualified Data.Text as T
-import System.IO (TextEncoding)
+import System.IO (Newline (..), TextEncoding)
 
 infix 4 .<=., .>=., .==.
 
@@ -787,6 +787,14 @@ data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
     -- ^ Text encoding used for file input/output
+  , optNewline :: Maybe Newline
+    -- ^ 'Newline' used for 'T.Text' data generation and writing to file.
+    --
+    -- If 'Nothing' is specified, 'LF' is used for text data generation
+    -- assuming that newline conversion will be performed on I/O, and
+    -- 'nativeNewline' is used for file writing.
+    --
+    -- (Default: 'Nothing')
   , optMPSWriteObjSense :: WriteSetting
     -- ^ @OBJSENSE@ section in MPS file is an extention of MPS file
     -- format for specifying the direction of the objective function
@@ -814,6 +822,7 @@ instance Default FileOptions where
   def =
     FileOptions
     { optFileEncoding = Nothing
+    , optNewline = Nothing
     , optMPSWriteObjSense = WriteIfNotDefault
     , optMPSWriteObjName = True
     }

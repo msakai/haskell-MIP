@@ -118,6 +118,7 @@ tests:
     source-dirs:         test
     dependencies:
     - MIP
+    - bytestring
     - filepath
     - HUnit
     - quickcheck-instances >=0.3.19 && <0.4
@@ -126,6 +127,7 @@ tests:
     - tasty-quickcheck >=0.8 && <0.12
     - tasty-th
     - temporary
+    - text
     when:
       - condition: flag(TestCBC)
         then:
@@ -169,6 +171,13 @@ tests:
           cpp-options: " "
       - condition: flag(WithZlib)
         then:
+          cpp-options: "-DWITH_ZLIB"
+        else:
+          cpp-options: " "
+      - condition: flag(WithZlib)
+        then:
+          dependencies:
+          - zlib
           cpp-options: "-DWITH_ZLIB"
         else:
           cpp-options: " "
