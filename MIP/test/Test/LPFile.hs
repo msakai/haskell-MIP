@@ -87,7 +87,7 @@ checkString name str = do
         Right str -> parseString def name str @?= Right lp
 
 isLFText :: TL.Text -> Bool
-isLFText s = not ('\r' `TL.elem` s)
+isLFText s = not $ TL.any ('\r' ==) s
 
 isCRLFText :: TL.Text -> Bool
 isCRLFText s = all (\(c1, c2) -> not (c2 == '\n') || c1 == '\r') $ TL.zip s (TL.tail s)

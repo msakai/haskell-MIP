@@ -99,7 +99,7 @@ checkString name str = do
         Right str -> assertBool ("failed to parse " ++ show str)  $ isRight $ parseString def name str
 
 isLFText :: TL.Text -> Bool
-isLFText s = not ('\r' `TL.elem` s)
+isLFText s = not $ TL.any ('\r' ==) s
 
 isCRLFText :: TL.Text -> Bool
 isCRLFText s = all (\(c1, c2) -> not (c2 == '\n') || c1 == '\r') $ TL.zip s (TL.tail s)

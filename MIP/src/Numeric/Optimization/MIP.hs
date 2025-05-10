@@ -130,11 +130,15 @@ module Numeric.Optimization.MIP
 import Prelude hiding (readFile, writeFile)
 import Control.Applicative
 import Control.Exception
-import Data.Char
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.CaseInsensitive as CI
+import Data.Char (toLower)
 import Data.Scientific (Scientific)
 import Data.String
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
+import qualified Data.Text.Lazy.Encoding as TLEncoding
+import GHC.IO.Encoding (getLocaleEncoding)
 import System.FilePath (takeExtension, splitExtension)
 import System.IO hiding (readFile, writeFile)
 import Text.Megaparsec (Stream (..))
@@ -146,10 +150,7 @@ import qualified Numeric.Optimization.MIP.MPSFile as MPSFile
 
 #ifdef WITH_ZLIB
 import qualified Codec.Compression.GZip as GZip
-import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Lazy.Encoding (encode, decode)
-import qualified Data.CaseInsensitive as CI
-import GHC.IO.Encoding (getLocaleEncoding)
 #endif
 
 -- | Parse LP or MPS file based on file extension.
@@ -187,22 +188,28 @@ readMPSFile opt fname = do
 #endif
 
 readTextFile :: FileOptions -> FilePath -> IO TL.Text
-#ifndef WITH_ZLIB
-readTextFile opt fname = do
-  h <- openFile fname ReadMode
-  case optFileEncoding opt of
-    Nothing -> return ()
-    Just enc -> hSetEncoding h enc
-  TLIO.hGetContents h
-#else
 readTextFile opt fname = do
   enc <- case optFileEncoding opt of
-         Nothing -> getLocaleEncoding
-         Just enc -> return enc
-  let f = if CI.mk (takeExtension fname) == ".gz" then GZip.decompress else id
-  s <- BL.readFile fname
-  return $ decode enc $ f s
+           Nothing -> getLocaleEncoding
+           Just enc -> return enc
+
+  if CI.mk (show enc) `elem` ["UTF-8", "ASCII", "US-ASCII"] then do
+#ifdef WITH_ZLIB
+    let f = if CI.mk (takeExtension fname) == ".gz" then GZip.decompress else id
+#else
+    let f = id
 #endif
+    s <- f <$> BL.readFile fname
+    return $ TLEncoding.decodeUtf8 s
+#ifdef WITH_ZLIB
+  else if CI.mk (takeExtension fname) == ".gz" then do
+    s <- GZip.decompress <$> BL.readFile fname
+    return $ decode enc s
+#endif
+  else do
+    h <- openFile fname ReadMode
+    hSetEncoding h enc
+    TLIO.hGetContents h
 
 -- | Parse a string containing LP file data.
 parseLPString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
@@ -233,35 +240,41 @@ writeLPFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeLPFile opt fname prob =
   case LPFile.render opt{ optNewline = optNewline opt <|> Just nativeNewline } prob of
     Left err -> ioError $ userError err
-    Right s -> writeTextFile opt fname s
+    Right s -> writeTextFile opt fname (isAscii prob) s
 
 -- | Generate MPS file.
 writeMPSFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeMPSFile opt fname prob =
   case MPSFile.render opt{ optNewline = optNewline opt <|> Just nativeNewline } prob of
     Left err -> ioError $ userError err
-    Right s -> writeTextFile opt fname s
+    Right s -> writeTextFile opt fname (isAscii prob) s
 
-writeTextFile :: FileOptions -> FilePath -> TL.Text -> IO ()
-writeTextFile opt fname s = do
-  let writeSimple = do
-        withFile fname WriteMode $ \h -> do
-          hSetNewlineMode h noNewlineTranslation
-          case optFileEncoding opt of
-            Nothing -> return ()
-            Just enc -> hSetEncoding h enc
-          TLIO.hPutStr h s
+writeTextFile :: FileOptions -> FilePath -> Bool -> TL.Text -> IO ()
+writeTextFile opt fname asciiSafe s = do
+  enc <- case optFileEncoding opt of
+           Nothing -> getLocaleEncoding
+           Just enc -> return enc
+  let encName = CI.mk (show enc)
+
 #ifdef WITH_ZLIB
-  if CI.mk (takeExtension fname) /= ".gz" then do
-    writeSimple
-  else do
-    enc <- case optFileEncoding opt of
-             Nothing -> getLocaleEncoding
-             Just enc -> return enc
-    BL.writeFile fname $ GZip.compress $ encode enc s
+  if CI.mk (takeExtension fname) == ".gz" then do
+    let bs =
+          if encName == "UTF-8" || asciiSafe && (encName `elem` ["ASCII", "US-ASCII"]) then
+            TLEncoding.encodeUtf8 s
+          else
+            encode enc s
+    BL.writeFile fname $ GZip.compress bs
 #else
-  writeSimple
+  if False then do
+    undefined
 #endif
+  else if encName == "UTF-8" || asciiSafe && (encName `elem` ["ASCII", "US-ASCII"]) then do
+    BL.writeFile fname $ TLEncoding.encodeUtf8 s
+  else do
+    withFile fname WriteMode $ \h -> do
+      hSetNewlineMode h noNewlineTranslation
+      hSetEncoding h enc
+      TLIO.hPutStr h s
 
 -- | Generate a 'TL.Text' containing LP file data.
 toLPString :: FileOptions -> Problem Scientific -> Either String TL.Text
