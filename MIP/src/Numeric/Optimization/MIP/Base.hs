@@ -790,7 +790,7 @@ semiIntegerVariables mip = Map.keysSet $ Map.filter ((SemiIntegerVariable ==) . 
 data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
-    -- ^ Text encoding used for file input/output
+    -- ^ Text encoding used for file I/O
   , optNewline :: Maybe Newline
     -- ^ 'Newline' used for 'T.Text' data generation and writing to file.
     --
@@ -807,15 +807,15 @@ data FileOptions
     --
     -- This option controls whether the @OBJSENSE@ sections is written.
     -- If 'WriteIfNotDefault' is used, @OBJSENSE@ is written when the
-    -- objective is maximization and @OBJSENSE@ is not written written
-    -- when the objective is minimizing.
+    -- objective is maximization and @OBJSENSE@ is not written
+    -- when the objective is minimization.
     --
     -- (Default: 'WriteIfNotDefault')
   , optMPSWriteObjName :: Bool
     -- ^ @OBJNAME@ section is an extention of MPS file format for
     -- selecting an objective function from among the free rows within
     -- a MPS file. Not all solver support it (e.g. GLPK-4.48
-    -- does not support @OBJNAME@ it).
+    -- does not support it).
     --
     -- This option controls whether the @OBJNAME@ section is written.
     --
