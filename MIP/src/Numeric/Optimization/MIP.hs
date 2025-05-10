@@ -131,6 +131,7 @@ import Prelude hiding (readFile, writeFile)
 import Control.Applicative
 import Control.Exception
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Builder as BB
 import qualified Data.CaseInsensitive as CI
 import Data.Char (toLower)
 import Data.Scientific (Scientific)
@@ -269,7 +270,12 @@ writeTextFile opt fname asciiSafe s = do
     undefined
 #endif
   else if encName == "UTF-8" || asciiSafe && (encName `elem` ["ASCII", "US-ASCII"]) then do
-    BL.writeFile fname $ TLEncoding.encodeUtf8 s
+#if MIN_VERSION_bytestring(0,11,2)
+    BB.writeFile fname $ TLEncoding.encodeUtf8Builder s
+#else
+    withBinaryFile fname WriteMode $ \h -> do
+      BB.hPutBuilder h (TLEncoding.encodeUtf8Builder s)
+#endif
   else do
     withFile fname WriteMode $ \h -> do
       hSetNewlineMode h noNewlineTranslation
