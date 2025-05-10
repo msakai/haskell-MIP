@@ -700,8 +700,7 @@ render' opt mip = do
 
   -- BOUNDS section
   writeSectionHeader "BOUNDS"
-  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, _)) -> do
-    let (lb,ub) = MIP.getBounds mip col
+  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, (lb,ub))) -> do
     case (lb,ub)  of
       (MIP.NegInf, MIP.PosInf) -> do
         -- free variable (no lower or upper bound)
