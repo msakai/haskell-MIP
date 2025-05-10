@@ -62,7 +62,7 @@ import qualified Data.Text.Lazy.IO as TLIO
 import Data.OptDir
 import System.IO
 import Text.Megaparsec hiding (label, skipManyTill, ParseError)
-import Text.Megaparsec.Char hiding (string', char')
+import Text.Megaparsec.Char hiding (string', char', newline)
 import qualified Text.Megaparsec.Char.Lexer as P
 
 import qualified Numeric.Optimization.MIP.Base as MIP
@@ -460,15 +460,25 @@ writeChar c = tell $ B.singleton c
 
 -- | Render a problem into a 'TL.Text' containing LP file data.
 render :: MIP.FileOptions -> MIP.Problem Scientific -> Either String TL.Text
-render _ mip = Right $ execM $ render' $ normalize mip
+render opt mip = Right $ execM $ render' opt $ normalize mip
 
 writeVar :: MIP.Var -> M ()
 writeVar (MIP.Var v) = writeString v
 
-render' :: MIP.Problem Scientific -> M ()
-render' mip = do
+render' :: MIP.FileOptions -> MIP.Problem Scientific -> M ()
+render' opt mip = do
+  let newline =
+        case fromMaybe LF (MIP.optNewline opt) of
+          LF -> "\n"
+          CRLF -> "\r\n"
+      writeStringLn s = do
+        writeString s
+        writeString newline
+
   case MIP.name mip of
-    Just name -> writeString $ "\\* Problem: " <> name <> " *\\\n"
+    Just name -> do
+      writeString $ "\\* Problem: " <> name <> " *\\"
+      writeString newline
     Nothing -> return ()
 
   let obj = MIP.objectiveFunction mip
@@ -477,37 +487,37 @@ render' mip = do
     case MIP.objDir obj of
       OptMin -> "MINIMIZE"
       OptMax -> "MAXIMIZE"
-  writeChar '\n'
+  writeString newline
 
   renderLabel (MIP.objLabel obj)
-  renderExpr True (MIP.objExpr obj)
-  writeChar '\n'
+  renderExpr newline True (MIP.objExpr obj)
+  writeString newline
 
-  writeString "SUBJECT TO\n"
+  writeStringLn "SUBJECT TO"
   forM_ (MIP.constraints mip) $ \c -> do
     unless (MIP.constrIsLazy c) $ do
-      renderConstraint c
-      writeChar '\n'
+      renderConstraint newline c
+      writeString newline
 
   let lcs = [c | c <- MIP.constraints mip, MIP.constrIsLazy c]
   unless (null lcs) $ do
-    writeString "LAZY CONSTRAINTS\n"
+    writeStringLn "LAZY CONSTRAINTS"
     forM_ lcs $ \c -> do
-      renderConstraint c
-      writeChar '\n'
+      renderConstraint newline c
+      writeString newline
 
   let cuts = [c | c <- MIP.userCuts mip]
   unless (null cuts) $ do
-    writeString "USER CUTS\n"
+    writeStringLn "USER CUTS"
     forM_ cuts $ \c -> do
-      renderConstraint c
-      writeChar '\n'
+      renderConstraint newline c
+      writeString newline
 
   let ivs = MIP.integerVariables mip `Set.union` MIP.semiIntegerVariables mip
       (bins,gens) = Set.partition (\v -> MIP.getBounds mip v == (MIP.Finite 0, MIP.Finite 1)) ivs
       scs = MIP.semiContinuousVariables mip `Set.union` MIP.semiIntegerVariables mip
 
-  writeString "BOUNDS\n"
+  writeStringLn "BOUNDS"
   forM_ (Map.toAscList (MIP.varBounds mip)) $ \(v, (lb,ub)) -> do
     unless (v `Set.member` bins) $ do
       renderBoundExpr lb
@@ -515,22 +525,22 @@ render' mip = do
       writeVar v
       writeString " <= "
       renderBoundExpr ub
-      writeChar '\n'
+      writeString newline
 
   unless (Set.null gens) $ do
-    writeString "GENERALS\n"
-    renderVariableList $ Set.toList gens
+    writeStringLn "GENERALS"
+    renderVariableList newline $ Set.toList gens
 
   unless (Set.null bins) $ do
-    writeString "BINARIES\n"
-    renderVariableList $ Set.toList bins
+    writeStringLn "BINARIES"
+    renderVariableList newline $ Set.toList bins
 
   unless (Set.null scs) $ do
-    writeString "SEMI-CONTINUOUS\n"
-    renderVariableList $ Set.toList scs
+    writeStringLn "SEMI-CONTINUOUS"
+    renderVariableList newline $ Set.toList scs
 
   unless (null (MIP.sosConstraints mip)) $ do
-    writeString "SOS\n"
+    writeStringLn "SOS"
     forM_ (MIP.sosConstraints mip) $ \(MIP.SOSConstraint l typ xs) -> do
       renderLabel l
       writeString $ case typ of
@@ -542,13 +552,13 @@ render' mip = do
         writeVar v
         writeString " : "
         tell $ B.scientificBuilder r
-      writeChar '\n'
+      writeString newline
 
-  writeString "END\n"
+  writeStringLn "END"
 
 -- FIXME: Gurobi は quadratic term が最後に一つある形式でないとダメっぽい
-renderExpr :: Bool -> MIP.Expr Scientific -> M ()
-renderExpr isObj e = fill 80 (ts1 ++ ts2)
+renderExpr :: T.Text -> Bool -> MIP.Expr Scientific -> M ()
+renderExpr newline isObj e = fill newline 80 (ts1 ++ ts2)
   where
     (ts,qts) = partition isLin (MIP.terms e)
     isLin (MIP.Term _ [])  = True
@@ -601,8 +611,8 @@ renderOp MIP.Le = writeString "<="
 renderOp MIP.Ge = writeString ">="
 renderOp MIP.Eql = writeString "="
 
-renderConstraint :: MIP.Constraint Scientific -> M ()
-renderConstraint c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.constrUB = ub } = do
+renderConstraint :: T.Text -> MIP.Constraint Scientific -> M ()
+renderConstraint newline c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.constrUB = ub } = do
   renderLabel (MIP.constrLabel c)
   case MIP.constrIndicator c of
     Nothing -> return ()
@@ -615,7 +625,7 @@ renderConstraint c@MIP.Constraint{ MIP.constrExpr = e, MIP.constrLB = lb, MIP.co
           Left (_ :: Double) -> B.scientificBuilder vval  -- should be error?
       writeString " -> "
 
-  renderExpr False e
+  renderExpr newline False e
   writeChar ' '
   let (op, val) =
         case (lb, ub) of
@@ -632,18 +642,18 @@ renderBoundExpr (MIP.Finite r) = tell $ B.scientificBuilder r
 renderBoundExpr MIP.NegInf = writeString "-inf"
 renderBoundExpr MIP.PosInf = writeString "+inf"
 
-renderVariableList :: [MIP.Var] -> M ()
-renderVariableList vs = fill 80 (map MIP.varName vs) >> writeChar '\n'
+renderVariableList :: T.Text -> [MIP.Var] -> M ()
+renderVariableList newline vs = fill newline 80 (map MIP.varName vs) >> writeString newline
 
-fill :: Int -> [T.Text] -> M ()
-fill width str = go str 0
+fill :: T.Text -> Int -> [T.Text] -> M ()
+fill newline width str = go str 0
   where
     go [] _ = return ()
     go (x:xs) 0 = writeString x >> go xs (T.length x)
     go (x:xs) w =
       if w + 1 + T.length x <= width
         then writeChar ' ' >> writeString x >> go xs (w + 1 + T.length x)
-        else writeChar '\n' >> go (x:xs) 0
+        else writeString newline >> go (x:xs) 0
 
 -- ---------------------------------------------------------------------------
 

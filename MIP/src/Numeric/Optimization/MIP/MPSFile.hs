@@ -57,7 +57,7 @@ import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.IO as TLIO
 import System.IO
 import Text.Megaparsec hiding  (ParseError)
-import Text.Megaparsec.Char hiding (string', eol)
+import Text.Megaparsec.Char hiding (string', eol, newline)
 import qualified Text.Megaparsec.Char as P
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 
@@ -602,10 +602,20 @@ render opt mip = Right $ execM $ render' opt $ normalizeConstTerm $ nameRows mip
 
 render' :: MIP.FileOptions -> MIP.Problem Scientific -> M ()
 render' opt mip = do
-  let probName = fromMaybe "" (MIP.name mip)
+  let newline =
+        case fromMaybe LF (MIP.optNewline opt) of
+          LF -> "\n"
+          CRLF -> "\r\n"
+
+      writeSectionHeader :: T.Text -> M ()
+      writeSectionHeader = writeSectionHeader' newline
+
+      writeFields :: [T.Text] -> M ()
+      writeFields = writeFields' newline
 
   -- NAME section
   -- The name starts in column 15 in fixed formats.
+  let probName = fromMaybe "" (MIP.name mip)
   writeSectionHeader $ "NAME" <> T.replicate 10 " " <> probName
 
   let MIP.ObjectiveFunction
@@ -789,12 +799,12 @@ render' opt mip = do
   -- ENDATA section
   writeSectionHeader "ENDATA"
 
-writeSectionHeader :: T.Text -> M ()
-writeSectionHeader s = writeText s >> writeChar '\n'
+writeSectionHeader' :: T.Text -> T.Text -> M ()
+writeSectionHeader' newline s = writeText s >> writeText newline
 
 -- Fields start in column 2, 5, 15, 25, 40 and 50
-writeFields :: [T.Text] -> M ()
-writeFields xs0 = f1 xs0 >> writeChar '\n'
+writeFields' :: T.Text -> [T.Text] -> M ()
+writeFields' newline xs0 = f1 xs0 >> writeText newline
   where
     -- columns 1-4
     f1 [] = return ()
