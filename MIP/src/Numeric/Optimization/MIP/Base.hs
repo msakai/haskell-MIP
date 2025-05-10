@@ -110,6 +110,7 @@ module Numeric.Optimization.MIP.Base
   , Default (..)
   , Variables (..)
   , intersectBounds
+  , isAscii
   ) where
 
 #if !MIN_VERSION_lattices(2,0,0)
@@ -118,13 +119,16 @@ import Algebra.Lattice
 import Algebra.PartialOrd
 import Control.Arrow ((***))
 import Control.Monad
+#if !MIN_VERSION_text(2,0,2)
+import qualified Data.Char as Char
+#endif
 import Data.Default.Class
 import Data.Foldable (toList)
 import Data.Hashable
 import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (isJust)
+import Data.Maybe (catMaybes, isJust)
 import Data.Ord (comparing)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
@@ -833,3 +837,18 @@ data WriteSetting
   | WriteIfNotDefault
   | WriteNever
   deriving (Eq, Ord, Enum, Bounded, Show, Read)
+
+isAscii :: Problem c -> Bool
+isAscii prob = and
+  [ all p $ catMaybes [name prob, objLabel (objectiveFunction prob)]
+  , all p $ catMaybes $ map constrLabel $ constraints prob
+  , all p $ catMaybes $ map constrLabel $ userCuts prob
+  , all p $ catMaybes $ map sosLabel $ sosConstraints prob
+  , all (p . varName) $ Map.keys (varDomains prob)
+  ]
+  where
+#if MIN_VERSION_text(2,0,2)
+    p = T.isAscii
+#else
+    p = T.all Char.isAscii
+#endif

@@ -23,6 +23,7 @@ import Test.Tasty.QuickCheck
 import Test.Tasty.TH
 import Numeric.Optimization.MIP (meetStatus)
 import qualified Numeric.Optimization.MIP as MIP
+import qualified Numeric.Optimization.MIP.Base as Base
 import qualified Numeric.Optimization.MIP.Solution.CBC as CBCSol
 import qualified Numeric.Optimization.MIP.Solution.CPLEX as CPLEXSol
 import qualified Numeric.Optimization.MIP.Solution.GLPK as GLPKSol
@@ -215,6 +216,29 @@ case_eval_semi_integer_variable = do
       MIP.def
       { MIP.varDomains = Map.fromList [("x", (MIP.SemiIntegerVariable, (MIP.Finite 1, MIP.Finite 2)))]
       }
+
+asciiProblem :: MIP.Problem Rational
+asciiProblem = MIP.def
+  { MIP.name = Just "problem"
+  , MIP.objectiveFunction = MIP.def{ MIP.objLabel = Just "obj" }
+  , MIP.constraints = [MIP.def{ MIP.constrLabel = Just "c1", MIP.constrExpr = MIP.varExpr "x1", MIP.constrUB = 1 }]
+  , MIP.userCuts = [MIP.def{ MIP.constrLabel = Just "u1", MIP.constrExpr = MIP.varExpr "x2", MIP.constrUB = 1 }]
+  , MIP.sosConstraints = [MIP.def{ MIP.sosLabel = Just "s1", MIP.sosBody = [("x1", 1), ("x2", 2)] }]
+  , MIP.varDomains = Map.fromList
+     [ ("x1", (MIP.ContinuousVariable, (0, 1000)))
+     , ("x2", (MIP.ContinuousVariable, (0, 1000)))
+     ]
+  }
+
+case_isAscii :: Assertion
+case_isAscii = do
+  True @=? Base.isAscii asciiProblem
+  False @=? Base.isAscii asciiProblem{ MIP.name = Just "🐱" }
+  False @=? Base.isAscii asciiProblem{ MIP.objectiveFunction = MIP.def{ MIP.objLabel = Just "🐱"  } }
+  False @=? Base.isAscii asciiProblem{ MIP.constraints = [MIP.def{ MIP.constrLabel = Just "🐱", MIP.constrExpr = MIP.varExpr "x1", MIP.constrUB = 1 }] }
+  False @=? Base.isAscii asciiProblem{ MIP.userCuts = [MIP.def{ MIP.constrLabel = Just "🐱", MIP.constrExpr = MIP.varExpr "x2", MIP.constrUB = 1 }] }
+  False @=? Base.isAscii asciiProblem{ MIP.sosConstraints = [MIP.def{ MIP.sosLabel = Just "🐱", MIP.sosBody = [("x1", 1), ("x2", 2)] }] }
+  False @=? Base.isAscii asciiProblem{ MIP.varDomains = Map.insert "🐱" (MIP.IntegerVariable, (0, 1000)) (MIP.varDomains asciiProblem) }
 
 case_file_io_lp :: Assertion
 case_file_io_lp = do
