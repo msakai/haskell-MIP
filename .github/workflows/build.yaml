@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ghc: '9.10.1'
+          - ghc: '9.10.2'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.10.yaml'
             stack_args: ''
@@ -30,7 +30,7 @@ jobs:
             stack_test_args: ''
             flags: '--flag MIP:TestCBC --flag MIP:TestGlpsol --flag MIP:TestLPSolve --flag MIP:TestGurobiCl --flag MIP:TestHiGHS --flag MIP:TestSCIP'
             scip_docker: true
-          - ghc: '9.6.6'
+          - ghc: '9.6.7'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
             stack_args: ''
