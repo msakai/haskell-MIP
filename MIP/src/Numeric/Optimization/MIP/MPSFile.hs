@@ -685,11 +685,11 @@ render' opt mip = do
       f col xs =
         forM_ (Map.toList xs) $ \(r, d) -> do
           writeFields ["", MIP.varName col, r, showValue d]
-      ivs = MIP.integerVariables mip `Set.union` MIP.semiIntegerVariables mip
-  forM_ (Map.toList (Map.filterWithKey (\col _ -> col `Set.notMember` ivs) cols)) $ \(col, xs) -> f col xs
-  unless (Set.null ivs) $ do
+      ivs = Map.filter (\(vt, _) -> vt == MIP.IntegerVariable || vt == MIP.SemiIntegerVariable) (MIP.varDomains mip)
+  forM_ (Map.toList (cols Map.\\ ivs)) $ \(col, xs) -> f col xs
+  unless (Map.null ivs) $ do
     writeFields ["", "MARK0000", "'MARKER'", "", "'INTORG'"]
-    forM_ (Map.toList (Map.filterWithKey (\col _ -> col `Set.member` ivs) cols)) $ \(col, xs) -> f col xs
+    forM_ (Map.toList (Map.intersection cols ivs)) $ \(col, xs) -> f col xs
     writeFields ["", "MARK0001", "'MARKER'", "", "'INTEND'"]
 
   -- RHS section
@@ -710,8 +710,7 @@ render' opt mip = do
 
   -- BOUNDS section
   writeSectionHeader "BOUNDS"
-  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, _)) -> do
-    let (lb,ub) = MIP.getBounds mip col
+  forM_ (Map.toList (MIP.varDomains mip)) $ \(col, (vt, (lb,ub))) -> do
     case (lb,ub)  of
       (MIP.NegInf, MIP.PosInf) -> do
         -- free variable (no lower or upper bound)
