@@ -240,6 +240,13 @@ case_isAscii = do
   False @=? Base.isAscii asciiProblem{ MIP.sosConstraints = [MIP.def{ MIP.sosLabel = Just "🐱", MIP.sosBody = [("x1", 1), ("x2", 2)] }] }
   False @=? Base.isAscii asciiProblem{ MIP.varDomains = Map.insert "🐱" (MIP.IntegerVariable, (0, 1000)) (MIP.varDomains asciiProblem) }
 
+case_isGZipSupported :: Assertion
+#ifdef WITH_ZLIB
+case_isGZipSupported = MIP.isGZipSupported @?= True
+#else
+case_isGZipSupported = MIP.isGZipSupported @?= False
+#endif
+
 case_file_io_lp :: Assertion
 case_file_io_lp = do
   let opt = MIP.def{ MIP.optFileEncoding = Just utf8 }
