@@ -105,6 +105,7 @@ module Numeric.Optimization.MIP
   -- $IO
   , FileOptions (..)
   , WriteSetting (..)
+  , isGZipSupported
 
   -- ** Reading problem files
   , readFile
@@ -290,6 +291,17 @@ toLPString opt = LPFile.render opt{ optNewline = optNewline opt <|> Just LF }
 toMPSString :: FileOptions -> Problem Scientific -> Either String TL.Text
 toMPSString opt = MPSFile.render opt{ optNewline = optNewline opt <|> Just LF }
 
+-- | Whether this library is build with gzip supoort.
+--
+-- @since 0.2.1.0
+isGZipSupported :: Bool
+#ifdef WITH_ZLIB
+isGZipSupported = True
+#else
+isGZipSupported = False
+#endif
+
 -- $IO
 -- If this library is built with @WithZlib@ flag (enabled by default), 
 -- reading/writing gzipped file (@.gz@) are also supported.
+-- Availability of gzipped file support can ben checked using 'isGZipSupported'.
