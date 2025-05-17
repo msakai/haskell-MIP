@@ -40,6 +40,7 @@ module Numeric.Optimization.MIP.MPSFile
 import Control.Exception (throwIO)
 import Control.Monad
 import Control.Monad.Writer
+import Control.Monad.ST
 import Data.Default.Class
 import Data.Maybe
 import Data.Set (Set)
@@ -49,6 +50,7 @@ import qualified Data.Map as Map
 import Data.Scientific
 import Data.Interned
 import Data.Interned.Text
+import Data.STRef
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -674,22 +676,25 @@ render' opt mip = do
 
   -- COLUMNS section
   writeSectionHeader "COLUMNS"
-  let cols :: Map Column (Map T.Text Scientific)
-      cols = Map.fromListWith Map.union
-             [ (v, Map.singleton l d)
-             | (Just l, xs) <-
-                 (Just objName, obj) :
-                 [(MIP.constrLabel c, lhs) | c <- MIP.constraints mip ++ MIP.userCuts mip, let lhs = MIP.constrExpr c]
-             , MIP.Term d [v] <- MIP.terms xs
-             ]
-      f col xs =
-        forM_ (Map.toList xs) $ \(r, d) -> do
+  let cols :: Map Column [(T.Text, Scientific)]
+      cols = runST $ do
+        refs <- mapM (const (newSTRef [])) (MIP.varDomains mip)
+        let g (Just l, xs) = do
+              let xs' = Map.fromListWith (+) [(v,d) | MIP.Term d [v] <- MIP.terms xs]
+              forM_ (Map.toList xs') $ \(v,d) -> modifySTRef (refs Map.! v) ((l,d) :)
+            g (Nothing, _) = error "should not happen"
+        g (Just objName, obj)
+        mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.constraints mip]
+        mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.userCuts mip]
+        mapM (fmap reverse . readSTRef) refs
+      printColumn col xs =
+        forM_ xs $ \(r, d) -> do
           writeFields ["", MIP.varName col, r, showValue d]
       ivs = Map.filter (\(vt, _) -> vt == MIP.IntegerVariable || vt == MIP.SemiIntegerVariable) (MIP.varDomains mip)
-  forM_ (Map.toList (cols Map.\\ ivs)) $ \(col, xs) -> f col xs
+  forM_ (Map.toList (cols Map.\\ ivs)) $ \(col, xs) -> printColumn col xs
   unless (Map.null ivs) $ do
     writeFields ["", "MARK0000", "'MARKER'", "", "'INTORG'"]
-    forM_ (Map.toList (Map.intersection cols ivs)) $ \(col, xs) -> f col xs
+    forM_ (Map.toList (Map.intersection cols ivs)) $ \(col, xs) -> printColumn col xs
     writeFields ["", "MARK0001", "'MARKER'", "", "'INTEND'"]
 
   -- RHS section
