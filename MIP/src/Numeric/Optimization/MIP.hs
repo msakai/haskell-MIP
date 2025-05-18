@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -151,29 +150,11 @@ readFile opt fname =
 
 -- | Parse a file containing LP file data.
 readLPFile :: FileOptions -> FilePath -> IO (Problem Scientific)
-#ifndef WITH_ZLIB
 readLPFile = LPFile.parseFile
-#else
-readLPFile opt fname = do
-  s <- readTextFile opt fname
-  let ret = LPFile.parseString opt fname s
-  case ret of
-    Left e -> throw e
-    Right a -> return a
-#endif
 
 -- | Parse a file containing MPS file data.
 readMPSFile :: FileOptions -> FilePath -> IO (Problem Scientific)
-#ifndef WITH_ZLIB
 readMPSFile = MPSFile.parseFile
-#else
-readMPSFile opt fname = do
-  s <- readTextFile opt fname
-  let ret = MPSFile.parseString opt fname s
-  case ret of
-    Left e -> throw e
-    Right a -> return a
-#endif
 
 -- | Parse a string containing LP file data.
 parseLPString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => FileOptions -> String -> s -> Either (ParseError s) (Problem Scientific)
