@@ -25,8 +25,8 @@ import Data.Scientific (Scientific)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
-import Numeric.Optimization.MIP (Solution)
-import qualified Numeric.Optimization.MIP as MIP
+import Numeric.Optimization.MIP.Base (Solution)
+import qualified Numeric.Optimization.MIP.Base as MIP
 
 parse :: TL.Text -> MIP.Solution Scientific
 parse t = parse' $ TL.lines t
