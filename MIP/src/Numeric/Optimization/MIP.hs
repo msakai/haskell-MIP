@@ -158,7 +158,7 @@ import Data.ByteString.Lazy.Encoding (encode, decode)
 -- | Parse LP or MPS file based on file extension.
 readFile :: FileOptions -> FilePath -> IO (Problem Scientific)
 readFile opt fname =
-  case getExt fname of
+  case getBaseExtension fname of
     ".lp"  -> readLPFile opt fname
     ".mps" -> readMPSFile opt fname
     ext -> ioError $ userError $ "unknown extension: " ++ ext
@@ -224,16 +224,16 @@ parseMPSString = MPSFile.parseString
 -- | Generate LP file or MPS file based on file extension.
 writeFile :: FileOptions -> FilePath -> Problem Scientific -> IO ()
 writeFile opt fname prob =
-  case getExt fname of
+  case getBaseExtension fname of
     ".lp"  -> writeLPFile opt fname prob
     ".mps" -> writeMPSFile opt fname prob
     ext -> ioError $ userError $ "unknown extension: " ++ ext
 
-getExt :: String -> String
-getExt fname | (base, ext) <- splitExtension fname =
+getBaseExtension :: String -> String
+getBaseExtension fname | (base, ext) <- splitExtension fname =
   case map toLower ext of
 #ifdef WITH_ZLIB
-    ".gz" -> getExt base
+    ".gz" -> getBaseExtension base
 #endif
     s -> s
 
