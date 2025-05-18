@@ -117,7 +117,7 @@ module Numeric.Optimization.MIP.Base
 import Algebra.Lattice
 #endif
 import Algebra.PartialOrd
-import Control.Arrow ((***))
+import Control.Arrow ((***), second)
 import Control.Monad
 #if !MIN_VERSION_text(2,0,2)
 import qualified Data.Char as Char
@@ -128,7 +128,7 @@ import Data.Hashable
 import Data.List (sortBy)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes, isJust)
+import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Ord (comparing)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
@@ -183,7 +183,7 @@ instance Functor Problem where
     , constraints       = map (fmap f) (constraints prob)
     , sosConstraints    = map (fmap f) (sosConstraints prob)
     , userCuts          = map (fmap f) (userCuts prob)
-    , varDomains        = fmap (id *** (fmap f *** fmap f)) (varDomains prob)
+    , varDomains        = fmap (second (fmap f *** fmap f)) (varDomains prob)
     }
 
 -- | Types of variables
@@ -457,7 +457,7 @@ instance Default (Constraint c) where
 instance Functor Constraint where
   fmap f c =
     c
-    { constrIndicator = fmap (id *** f) (constrIndicator c)
+    { constrIndicator = fmap (second f) (constrIndicator c)
     , constrExpr = fmap f (constrExpr c)
     , constrLB = fmap f (constrLB c)
     , constrUB = fmap f (constrUB c)
@@ -500,7 +500,7 @@ data SOSConstraint c
   deriving (Eq, Ord, Show)
 
 instance Functor SOSConstraint where
-  fmap f c = c{ sosBody = map (id *** f) (sosBody c) }
+  fmap f c = c{ sosBody = map (second f) (sosBody c) }
 
 instance Default (SOSConstraint c) where
   def = SOSConstraint
@@ -638,10 +638,7 @@ class Eval r a where
 
 instance Num r => Eval r Var where
   type Evaluated r Var = r
-  eval _tol sol v =
-    case Map.lookup v sol of
-      Just val -> val
-      Nothing -> 0
+  eval _tol sol v = fromMaybe 0 (Map.lookup v sol)
 
 instance Num r => Eval r (Term r) where
   type Evaluated r (Term r) = r
@@ -671,7 +668,7 @@ instance (Num r, Ord r) => Eval r (SOSConstraint r) where
       SOS1 -> length [() | val <- body, val] <= 1
       SOS2 -> f body
     where
-      body = map (not . isInBounds tol (0, 0) . eval tol sol . fst) $ sortBy (comparing snd) $ (sosBody sos)
+      body = map (not . isInBounds tol (0, 0) . eval tol sol . fst) $ sortBy (comparing snd) (sosBody sos)
       f [] = True
       f [_] = True
       f (x1 : x2 : xs)
@@ -742,7 +739,7 @@ instance Variables (Term c) where
   vars (Term _ xs) = Set.fromList xs
 
 instance Variables Var where
-  vars v = Set.singleton v
+  vars = Set.singleton
 
 instance Variables (ObjectiveFunction c) where
   vars ObjectiveFunction{ objExpr = e } = vars e

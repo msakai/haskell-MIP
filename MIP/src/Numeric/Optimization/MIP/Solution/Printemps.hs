@@ -47,7 +47,7 @@ data Incumbent
 customOptions :: J.Options
 customOptions =
   J.defaultOptions
-  { J.fieldLabelModifier = (J.camelTo2 '_' . drop (length "Incumbent"))
+  { J.fieldLabelModifier = J.camelTo2 '_' . drop (length "Incumbent")
   }
 
 instance J.FromJSON Incumbent where
