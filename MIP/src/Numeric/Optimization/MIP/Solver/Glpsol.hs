@@ -33,6 +33,8 @@ import Numeric.Optimization.MIP.Internal.ProcessUtil (runProcessWithOutputCallba
 -- | A solver instance for calling @glpsol@ command from [GLPK (GNU Linear Programming Kit)](https://www.gnu.org/software/glpk/).
 --
 -- Use 'glpsol' and record update syntax to modify its field.
+--
+-- If you want to use @libglpk@ library, please consult [MIP-glpk](https://hackage.haskell.org/package/MIP-glpk) package.
 data Glpsol
   = Glpsol
   { glpsolPath :: String
