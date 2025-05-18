@@ -420,7 +420,7 @@ data Constraint c
   }
   deriving (Eq, Ord, Show)
 
--- | Lower- and Upper- bounds of a 'Constraint'
+-- | Lower- and Upper- bounds of a t'Constraint'
 --
 -- @since 0.2.1.0
 constrBounds :: Constraint c -> Bounds c
