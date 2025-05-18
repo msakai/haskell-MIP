@@ -26,7 +26,7 @@ import Data.Scientific (Scientific)
 import Numeric.Optimization.MIP.Base as MIP
 import qualified Data.Map as Map
 
--- | Options for 'solve' function
+-- | Options for 'solve' function.
 data SolveOptions
   = SolveOptions
   { solveTimeLimit :: Maybe Double
@@ -52,16 +52,14 @@ instance Default SolveOptions where
     }
 
 
--- | Type class for solvers
---
--- 
+-- | Type class for MIP solvers.
 class Monad m => IsSolver s m | s -> m where
   -- | Low level version of 'solve'' that allows omission of variables with a value 0.
   --
   -- Implementor of the type class must implement this method.
   solve' :: s -> SolveOptions -> MIP.Problem Scientific -> m (MIP.Solution Scientific)
 
-  -- | A method for solving 'MIP.Problem'
+  -- | A method for solving a 'MIP.Problem'
   --
   -- This method is a bit higher level than 'solve'' in that it does not omit variables
   -- with a value @0@ unless 'solveCondensedSolution' is set to @True@.
