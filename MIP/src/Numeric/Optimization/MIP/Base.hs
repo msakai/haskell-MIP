@@ -42,7 +42,7 @@ module Numeric.Optimization.MIP.Base
   , getBounds
 
   -- ** Variables
-  , Var (Var)
+  , Var (Var', Var)
   , varName
   , toVar
   , fromVar

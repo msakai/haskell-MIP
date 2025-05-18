@@ -42,6 +42,7 @@ import Control.Monad
 import Control.Monad.Writer
 import Control.Monad.ST
 import Data.Default.Class
+import qualified Data.IntMap.Strict as IntMap
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -678,19 +679,26 @@ render' opt mip = do
   writeSectionHeader "COLUMNS"
   let cols :: Map Column [(T.Text, Scientific)]
       cols = runST $ do
-        refs <- mapM (const (newSTRef [])) (MIP.varDomains mip)
+        -- Use internedTextId and IntMap to avoid 'compare' on MIP.Var (i.e. Text).
+        refs <- fmap IntMap.fromList $ forM (Map.toList (MIP.varDomains mip)) $ \(MIP.Var' v, _) -> do
+          ref <- newSTRef []
+          pure (internedTextId v, ref)
+
         let g (Just l, xs) = do
-              let xs' = Map.fromListWith (+) [(v,d) | MIP.Term d [v] <- MIP.terms xs]
-              forM_ (Map.toList xs') $ \(v,d) -> modifySTRef (refs Map.! v) ((l,d) :)
+              let xs' = IntMap.fromListWith (+) [(internedTextId v, d) | MIP.Term d [MIP.Var' v] <- MIP.terms xs]
+              forM_ (IntMap.toList xs') $ \(i, d) -> modifySTRef (refs IntMap.! i) ((l,d) :)
             g (Nothing, _) = error "should not happen"
         g (Just objName, obj)
         mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.constraints mip]
         mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.userCuts mip]
-        mapM (fmap reverse . readSTRef) refs
+
+        Map.traverseWithKey (\(MIP.Var' v) _ -> fmap reverse $ readSTRef (refs IntMap.! internedTextId v)) (MIP.varDomains mip)
+
       printColumn col xs =
         forM_ xs $ \(r, d) -> do
           writeFields ["", MIP.varName col, r, showValue d]
       ivs = Map.filter (\(vt, _) -> vt == MIP.IntegerVariable || vt == MIP.SemiIntegerVariable) (MIP.varDomains mip)
+
   forM_ (Map.toList (cols Map.\\ ivs)) $ \(col, xs) -> printColumn col xs
   unless (Map.null ivs) $ do
     writeFields ["", "MARK0000", "'MARKER'", "", "'INTORG'"]
