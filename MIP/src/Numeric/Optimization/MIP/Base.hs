@@ -354,8 +354,8 @@ instance Num c => Num (Expr c) where
   negate (Expr' e) = Expr' $ fmap (\(Term c vs) -> Term (-c) vs) e
   abs = id
   signum _ = 1
-  fromInteger 0 = Expr []
-  fromInteger c = Expr [Term (fromInteger c) []]
+  fromInteger 0 = Expr' Seq.empty
+  fromInteger c = Expr' $ Seq.singleton $ Term (fromInteger c) []
 
 instance Functor Expr where
   fmap f (Expr' ts) = Expr' $ fmap (fmap f) ts
