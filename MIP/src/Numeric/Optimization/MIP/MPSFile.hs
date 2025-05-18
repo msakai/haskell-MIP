@@ -99,9 +99,7 @@ parseString _ = parse (parser <* eof)
 parseFile :: MIP.FileOptions -> FilePath -> IO (MIP.Problem Scientific)
 parseFile opt fname = do
   h <- openFile fname ReadMode
-  case MIP.optFileEncoding opt of
-    Nothing -> return ()
-    Just enc -> hSetEncoding h enc
+  forM_ (MIP.optFileEncoding opt) (hSetEncoding h)
   ret <- parse (parser <* eof) fname <$> TLIO.hGetContents h
   case ret of
     Left e -> throwIO (e :: ParseError TL.Text)
@@ -138,7 +136,7 @@ eol' = do
 tok :: C e s m => m a -> m a
 tok p = do
   x <- p
-  msum [eof, lookAhead (P.eol >> return ()), spaces1']
+  msum [eof, lookAhead (void P.eol), spaces1']
   return x
 
 row :: C e s m => m Row
@@ -209,10 +207,7 @@ parser = do
         case objname of
           Nothing -> head [r | (Nothing, r) <- rows] -- XXX
           Just r  -> intern r
-      objdir =
-        case objsense of
-          Nothing -> OptMin
-          Just d  -> d
+      objdir = fromMaybe OptMin objsense
       vs     = Map.keysSet cols `Set.union` Set.fromList [col | (_,col,_) <- bnds]
       intvs2 = Set.fromList [col | (t,col,_) <- bnds, t `elem` [BV,LI,UI]]
       scvs   = Set.fromList [col | (SC,col,_) <- bnds]
@@ -337,17 +332,11 @@ parser = do
         , MIP.varDomains            = Map.fromAscList
             [ (v, (t, bs))
             | v <- Set.toAscList vs
-            , let t =
-                    if v `Set.member` sivs then
-                      MIP.SemiIntegerVariable
-                    else if v `Set.member` intvs1 && v `Set.member` scvs then
-                      MIP.SemiIntegerVariable
-                    else if v `Set.member` intvs1 || v `Set.member` intvs2 then
-                      MIP.IntegerVariable
-                    else if v `Set.member` scvs then
-                      MIP.SemiContinuousVariable
-                    else
-                      MIP.ContinuousVariable
+            , let t | v `Set.member` sivs = MIP.SemiIntegerVariable
+                    | v `Set.member` intvs1 && v `Set.member` scvs = MIP.SemiIntegerVariable
+                    | v `Set.member` intvs1 || v `Set.member` intvs2 = MIP.IntegerVariable
+                    | v `Set.member` scvs = MIP.SemiContinuousVariable
+                    | otherwise = MIP.ContinuousVariable
             , let bs = Map.findWithDefault MIP.defaultBounds v bounds
             ]
         }
@@ -367,9 +356,8 @@ objSenseSection :: C e s m => m OptDir
 objSenseSection = do
   try $ stringLn "OBJSENSE"
   spaces1'
-  d <-  (try (stringLn "MAX") >> return OptMax)
+  (try (stringLn "MAX") >> return OptMax)
     <|> (stringLn "MIN" >> return OptMin)
-  return d
 
 objNameSection :: C e s m => m T.Text
 objNameSection = do
@@ -693,7 +681,7 @@ render' opt mip = do
         mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.constraints mip]
         mapM_ g [(MIP.constrLabel c, MIP.constrExpr c) | c <- MIP.userCuts mip]
 
-        Map.traverseWithKey (\(MIP.Var' v) _ -> fmap reverse $ readSTRef (refs IntMap.! internedTextId v)) (MIP.varDomains mip)
+        Map.traverseWithKey (\(MIP.Var' v) _ -> reverse <$> readSTRef (refs IntMap.! internedTextId v)) (MIP.varDomains mip)
 
       printColumn col xs =
         forM_ xs $ \(r, d) -> do
@@ -773,7 +761,7 @@ render' opt mip = do
   do let qm = Map.map (2*) $ quadMatrix obj
      unless (Map.null qm) $ do
        writeSectionHeader "QMATRIX"
-       forM_ (Map.toList qm) $ \(((v1,v2), val)) -> do
+       forM_ (Map.toList qm) $ \((v1,v2), val) -> do
          writeFields ["", MIP.varName v1, MIP.varName v2, showValue val]
 
   -- SOS section

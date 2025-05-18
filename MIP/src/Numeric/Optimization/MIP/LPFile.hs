@@ -43,6 +43,7 @@ import Control.Monad.Writer
 import Control.Monad.ST
 import Data.Char
 import Data.Default.Class
+import Data.Either (lefts, rights)
 import Data.List
 import Data.Maybe
 import Data.Scientific (Scientific, floatingOrInteger)
@@ -83,9 +84,7 @@ parseString _ = parse (parser <* eof)
 parseFile :: MIP.FileOptions -> FilePath -> IO (MIP.Problem Scientific)
 parseFile opt fname = do
   h <- openFile fname ReadMode
-  case MIP.optFileEncoding opt of
-    Nothing -> return ()
-    Just enc -> hSetEncoding h enc
+  forM_ (MIP.optFileEncoding opt) (hSetEncoding h)
   ret <- parse (parser <* eof) fname <$> TLIO.hGetContents h
   case ret of
     Left e -> throwIO (e :: ParseError TL.Text)
@@ -103,7 +102,7 @@ string' :: C e s m => String -> m ()
 string' s = mapM_ char' s <?> show s
 
 sep :: C e s m => m ()
-sep = skipMany ((comment >> return ()) <|> (spaceChar >> return ()))
+sep = skipMany (void comment <|> void spaceChar)
 
 comment :: C e s m => m ()
 comment = do
@@ -167,8 +166,8 @@ parser = do
 
   bnds <- option Map.empty (try boundsSection)
   exvs <- many (liftM Left generalSection <|> liftM Right binarySection)
-  let ints = Set.fromList $ concat [x | Left  x <- exvs]
-      bins = Set.fromList $ concat [x | Right x <- exvs]
+  let ints = Set.fromList $ concat (lefts exvs)
+      bins = Set.fromList $ concat (rights exvs)
   bnds2 <- return $ Map.unionWith MIP.intersectBounds
             bnds (Map.fromAscList [(v, (MIP.Finite 0, MIP.Finite 1)) | v <- Set.toAscList bins])
   scs <- liftM Set.fromList $ option [] (try semiSection)
@@ -189,8 +188,8 @@ parser = do
     MIP.Problem
     { MIP.name              = name
     , MIP.objectiveFunction = obj
-    , MIP.constraints       = [c | Left c <- cs]
-    , MIP.userCuts          = [c | Right c <- cs]
+    , MIP.constraints       = lefts cs
+    , MIP.userCuts          = rights cs
     , MIP.sosConstraints    = ss
     , MIP.varDomains        = Map.fromAscList
        [ (v, (t, bs))
@@ -345,7 +344,7 @@ boundExpr = msum
   ]
 
 inf :: C e s m => m ()
-inf = tok (string "inf" >> optional (string "inity")) >> return ()
+inf = void (tok (string "inf" >> optional (string "inity")))
 
 -- ---------------------------------------------------------------------------
 
@@ -368,8 +367,8 @@ sosSection :: C e s m => m [MIP.SOSConstraint Scientific]
 sosSection = do
   tok $ string' "sos"
   many $ try $ do
-    (l,t) <- try (do{ l <- label; t <- typ; return (Just l, t) })
-          <|> (do{ t <- typ; return (Nothing, t) })
+    (l,t) <- try (do { l <- label; t <- typ; return (Just l, t) })
+          <|> (do { t <- typ; return (Nothing, t) })
     xs <- many $ try $ do
       v <- variable
       tok $ char ':'
@@ -507,7 +506,7 @@ render' opt mip = do
       renderConstraint newline c
       writeString newline
 
-  let cuts = [c | c <- MIP.userCuts mip]
+  let cuts = MIP.userCuts mip
   unless (null cuts) $ do
     writeStringLn "USER CUTS"
     forM_ cuts $ \c -> do
