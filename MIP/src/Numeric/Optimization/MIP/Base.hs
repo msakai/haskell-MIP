@@ -146,7 +146,7 @@ infix 4 .<=., .>=., .==.
 
 -- ---------------------------------------------------------------------------
 
--- | A problem instance
+-- | A problem instance.
 data Problem c
   = Problem
   { name :: Maybe T.Text
@@ -186,7 +186,7 @@ instance Functor Problem where
     , varDomains        = fmap (id *** (fmap f *** fmap f)) (varDomains prob)
     }
 
--- | Types of variables
+-- | Types of variables.
 --
 -- This is equivalent to:
 --
@@ -197,13 +197,13 @@ varTypes :: Problem c -> Map Var VarType
 varTypes = fmap fst . varDomains
 
 {-# DEPRECATED varType "Use varTypes instead" #-}
--- | Types of variables
+-- | Types of variables.
 --
 -- Deprecated alias of 'varTypes'.
 varType :: Problem c -> Map Var VarType
 varType = varTypes
 
--- | Bounds of variables
+-- | Bounds of variables.
 --
 -- This is equivalent to:
 --
@@ -213,12 +213,12 @@ varType = varTypes
 varBounds :: Problem c -> Map Var (Bounds c)
 varBounds = fmap snd . varDomains
 
--- | Label used for naming various elements of t'Problem'
+-- | Label used for naming various elements of t'Problem'.
 type Label = T.Text
 
 -- ---------------------------------------------------------------------------
 
--- | Variables used in problems
+-- | Variables used in a t'Problem'.
 newtype Var = Var' InternedText
   deriving Eq
 
@@ -246,17 +246,17 @@ instance Hashable Var where
   hashWithSalt salt (Var' x) = hashWithSalt salt (internedTextId x)
 #endif
 
--- | Variable's name
+-- | Variable's name.
 varName :: Var -> T.Text
 varName (Var s) = s
 
 {-# DEPRECATED toVar "Use fromString function or Var pattern instead" #-}
--- | convert a string into a variable
+-- | Convert a string into a variable.
 toVar :: String -> Var
 toVar = fromString
 
 {-# DEPRECATED fromVar "Use varName function or Var pattern instead" #-}
--- | convert a variable into a string
+-- | Convert a variable into a string.
 fromVar :: Var -> String
 fromVar (Var s) = T.unpack s
 
@@ -266,7 +266,7 @@ fromVar (Var s) = T.unpack s
 -- @since 0.2.1.0
 type Domain c = (VarType, Bounds c)
 
--- | Type of variables
+-- | Variable types.
 --
 -- Variables can take values depending on their types and their bounds ('Bounds').
 data VarType
@@ -279,45 +279,45 @@ data VarType
 instance Default VarType where
   def = ContinuousVariable
 
--- | looking up bounds for a variable
+-- | Look up variable type.
 getVarType :: Problem c -> Var -> VarType
 getVarType mip v =
   case Map.lookup v (varDomains mip) of
     Just (vt, _) -> vt
     Nothing -> def
 
--- | type for representing lower/upper bound of variables
+-- | Type for representing lower/upper bound of variables.
 type BoundExpr c = Extended c
 
--- | type for representing lower/upper bound of variables
+-- | Type for representing lower/upper bound of variables.
 type Bounds c = (BoundExpr c, BoundExpr c)
 
--- | default bounds
+-- | Default bounds.
 defaultBounds :: Num c => Bounds c
 defaultBounds = (defaultLB, defaultUB)
 
--- | default lower bound (0)
+-- | Default lower bound (0).
 defaultLB :: Num c => BoundExpr c
 defaultLB = Finite 0
 
--- | default upper bound (+∞)
+-- | Default upper bound (+∞).
 defaultUB :: BoundExpr c
 defaultUB = PosInf
 
--- | looking up bounds for a variable
+-- | Look up bounds for a variable.
 getBounds :: Num c => Problem c -> Var -> Bounds c
 getBounds mip v =
   case Map.lookup v (varDomains mip) of
     Just (_, bs) -> bs
     Nothing -> defaultBounds
 
--- | Intersection of two 'Bounds'
+-- | Intersection of two 'Bounds'.
 intersectBounds :: Ord c => Bounds c -> Bounds c -> Bounds c
 intersectBounds (lb1,ub1) (lb2,ub2) = (max lb1 lb2, min ub1 ub2)
 
 -- ---------------------------------------------------------------------------
 
--- | Arithmetic expressions
+-- | Arithmetic expressions.
 --
 -- Essentialy an expression is a sequence of t'Term's.
 newtype Expr c = Expr' (Seq (Term c))
@@ -335,16 +335,16 @@ instance Show c => Show (Expr c) where
     where
       app_prec = 10
 
--- | Variable expression
+-- | Variable expression.
 varExpr :: Num c => Var -> Expr c
 varExpr v = Expr' $ Seq.singleton $ Term 1 [v]
 
--- | Constant expression
+-- | Constant expression.
 constExpr :: (Eq c, Num c) => c -> Expr c
 constExpr 0 = Expr' Seq.empty
 constExpr c = Expr' $ Seq.singleton $ Term c []
 
--- | Terms of an expression
+-- | Terms of an expression.
 terms :: Expr c -> [Term c]
 terms (Expr ts) = ts
 
@@ -360,7 +360,7 @@ instance Num c => Num (Expr c) where
 instance Functor Expr where
   fmap f (Expr' ts) = Expr' $ fmap (fmap f) ts
 
--- | Split an expression into an expression without constant term and a constant
+-- | Split an expression into an expression without constant term and a constant.
 splitConst :: Num c => Expr c -> (Expr c, c)
 splitConst (Expr' ts) = (e2, c2)
   where
@@ -369,7 +369,7 @@ splitConst (Expr' ts) = (e2, c2)
     e2 = Expr' $ Seq.filter p ts
     c2 = sum [c | Term c [] <- toList ts]
 
--- | terms
+-- | Terms.
 data Term c = Term c [Var]
   deriving (Eq, Ord, Show)
 
@@ -378,7 +378,7 @@ instance Functor Term where
 
 -- ---------------------------------------------------------------------------
 
--- | objective function
+-- | Objective function.
 data ObjectiveFunction c
   = ObjectiveFunction
   { objLabel :: Maybe Label
@@ -400,7 +400,7 @@ instance Functor ObjectiveFunction where
 
 -- ---------------------------------------------------------------------------
 
--- | Constraint
+-- | Constraint.
 --
 -- In the most general case, it is of the form @x = v → L ≤ e ≤ U@.
 data Constraint c
@@ -420,7 +420,7 @@ data Constraint c
   }
   deriving (Eq, Ord, Show)
 
--- | Lower- and Upper- bounds of a 'Constraint'
+-- | Lower- and Upper- bounds of a t'Constraint'.
 --
 -- @since 0.2.1.0
 constrBounds :: Constraint c -> Bounds c
@@ -463,7 +463,7 @@ instance Functor Constraint where
     , constrUB = fmap f (constrUB c)
     }
 
--- | relational operators
+-- | Relational operators.
 data RelOp
   = Le  -- ^ (≤)
   | Ge  -- ^ (≥)
@@ -472,25 +472,25 @@ data RelOp
 
 -- ---------------------------------------------------------------------------
 
--- | types of SOS (special ordered sets) constraints
+-- | Types of SOS (special ordered sets) constraints.
 data SOSType
   = SOS1 -- ^ Type 1 SOS constraint
   | SOS2 -- ^ Type 2 SOS constraint
   deriving (Eq, Ord, Enum, Bounded, Show, Read)
 
 -- {-# DEPRECATED S1 "Use SOS1 instead" #-}
--- | Alias of 'SOS1'
+-- | Alias of 'SOS1'.
 pattern S1 :: SOSType
 pattern S1 = SOS1
 
 -- {-# DEPRECATED S2 "Use SOS2 instead" #-}
--- | Alias of 'SOS2'
+-- | Alias of 'SOS2'.
 pattern S2 :: SOSType
 pattern S2 = SOS2
 
 {-# COMPLETE S1, S2 #-}
 
--- | SOS (special ordered sets) constraints
+-- | SOS (special ordered sets) constraints.
 data SOSConstraint c
   = SOSConstraint
   { sosLabel :: Maybe Label
@@ -618,7 +618,7 @@ instance Fractional r => Default (Tol r) where
     , optimalityTol = 1e-6
     }
 
--- | t'Tol' value with all tolerances are zero
+-- | t'Tol' value with all tolerances are zero.
 zeroTol :: Fractional r => Tol r
 zeroTol =
   Tol
@@ -757,36 +757,36 @@ instance Variables (SOSConstraint c) where
 
 -- ---------------------------------------------------------------------------
 
--- | Set of variables of a t'Problem'
+-- | Set of variables of a t'Problem'.
 variables :: Problem c -> Set Var
 variables mip = Map.keysSet $ varDomains mip
 
--- | Set of continuous variables of a t'Problem'
+-- | Set of continuous variables of a t'Problem'.
 continuousVariables :: Problem c -> Set Var
 continuousVariables mip = Map.keysSet $ Map.filter ((ContinuousVariable ==) . fst) (varDomains mip)
 
--- | Set of integer variables of a t'Problem'
+-- | Set of integer variables of a t'Problem'.
 integerVariables :: Problem c -> Set Var
 integerVariables mip = Map.keysSet $ Map.filter ((IntegerVariable ==) . fst) (varDomains mip)
 
--- | Set of binary variables (integers variables with lower bound 0 and upper bound 1) of a t'Problem'
+-- | Set of binary variables (integers variables with lower bound 0 and upper bound 1) of a t'Problem'.
 binaryVariables :: (Num c, Eq c) => Problem c -> Set Var
 binaryVariables mip = Map.keysSet $ Map.filter p (varDomains mip)
   where
     p (IntegerVariable, (Finite 0, Finite 1)) = True
     p (_, _) = False
 
--- | Set of semi-continuous variables of a t'Problem'
+-- | Set of semi-continuous variables of a t'Problem'.
 semiContinuousVariables :: Problem c -> Set Var
 semiContinuousVariables mip = Map.keysSet $ Map.filter ((SemiContinuousVariable ==) . fst) (varDomains mip)
 
--- | Set of semi-integer variables of a t'Problem'
+-- | Set of semi-integer variables of a t'Problem'.
 semiIntegerVariables :: Problem c -> Set Var
 semiIntegerVariables mip = Map.keysSet $ Map.filter ((SemiIntegerVariable ==) . fst) (varDomains mip)
 
 -- ---------------------------------------------------------------------------
 
--- | Options for reading/writing problem files
+-- | Options for reading/writing problem files.
 data FileOptions
   = FileOptions
   { optFileEncoding :: Maybe TextEncoding
@@ -831,13 +831,17 @@ instance Default FileOptions where
     , optMPSWriteObjName = True
     }
 
--- | Options for writing something of not
+-- | Options for writing a particular data to files.
 data WriteSetting
   = WriteAlways
+    -- ^ Always write the data.
   | WriteIfNotDefault
+    -- ^ Write the data only if it is not the default value.
   | WriteNever
+    -- ^ Never write the data.
   deriving (Eq, Ord, Enum, Bounded, Show, Read)
 
+-- | Checks if all variable names and labels in the problem are ASCII.
 isAscii :: Problem c -> Bool
 isAscii prob = and
   [ all p $ catMaybes [name prob, objLabel (objectiveFunction prob)]

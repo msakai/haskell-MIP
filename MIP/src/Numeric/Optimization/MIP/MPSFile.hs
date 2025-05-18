@@ -90,6 +90,7 @@ data BoundType
 type C e s m = (MonadParsec e s m, Token s ~ Char, IsString (Tokens s))
 
 -- | Parse a string containing MPS file data.
+--
 -- The source name is only used in error messages and may be the empty string.
 parseString :: (Stream s, Token s ~ Char, IsString (Tokens s)) => MIP.FileOptions -> String -> s -> Either (ParseError s) (MIP.Problem Scientific)
 parseString _ = parse (parser <* eof)
