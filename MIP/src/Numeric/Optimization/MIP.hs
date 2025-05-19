@@ -120,6 +120,11 @@ module Numeric.Optimization.MIP
   , toLPString
   , toMPSString
 
+  -- ** Reading/Writing solution files
+  , SolutionFormat (..)
+  , readSolution
+  , writeSolution
+
   -- * Utilities
   , Default (..)
   , Variables (..)
@@ -139,6 +144,14 @@ import Numeric.Optimization.MIP.Base
 import Numeric.Optimization.MIP.FileUtils
 import qualified Numeric.Optimization.MIP.LPFile as LPFile
 import qualified Numeric.Optimization.MIP.MPSFile as MPSFile
+import qualified Numeric.Optimization.MIP.Solution.CBC as SolCBC
+import qualified Numeric.Optimization.MIP.Solution.CPLEX as SolCPLEX
+import qualified Numeric.Optimization.MIP.Solution.GLPK as SolGLPK
+import qualified Numeric.Optimization.MIP.Solution.Gurobi as SolGurobi
+import qualified Numeric.Optimization.MIP.Solution.HiGHS as SolHiGHS
+import qualified Numeric.Optimization.MIP.Solution.MIPLIB as SolMIPLIB
+import qualified Numeric.Optimization.MIP.Solution.Printemps as SolPrintemps
+import qualified Numeric.Optimization.MIP.Solution.SCIP as SolSCIP
 
 -- | Parse LP or MPS file based on file extension.
 readFile :: FileOptions -> FilePath -> IO (Problem Scientific)
@@ -193,6 +206,59 @@ toLPString opt = LPFile.render opt{ optNewline = optNewline opt <|> Just LF }
 -- | Generate a 'TL.Text' containing MPS file data.
 toMPSString :: FileOptions -> Problem Scientific -> Either String TL.Text
 toMPSString opt = MPSFile.render opt{ optNewline = optNewline opt <|> Just LF }
+
+-- | Solution format for 'readSolution' and 'writeSolution'.
+--
+-- @since 0.2.1.0
+data SolutionFormat
+  = SolutionFormatCBC
+    -- ^ See "Numeric.Optimization.MIP.Solution.CBC" for details.
+  | SolutionFormatCPLEX
+    -- ^ See "Numeric.Optimization.MIP.Solution.CPLEX" for details.
+  | SolutionFormatGLPK
+    -- ^ See "Numeric.Optimization.MIP.Solution.GLPK" for details.
+  | SolutionFormatGurobi
+    -- ^ See "Numeric.Optimization.MIP.Solution.Gurobi" for details.
+  | SolutionFormatHiGHS
+    -- ^ See "Numeric.Optimization.MIP.Solution.HiGHS" for details.
+  | SolutionFormatMIPLIB
+    -- ^ See "Numeric.Optimization.MIP.Solution.MIPLIB" for details.
+  | SolutionFormatPrintempsIncumbent
+    -- ^ See "Numeric.Optimization.MIP.Solution.Printemps" for details.
+  | SolutionFormatSCIP
+    -- ^ See "Numeric.Optimization.MIP.Solution.SCIP" for details.
+  deriving (Eq, Ord, Enum, Show)
+
+-- | Read a solution file.
+--
+-- 'FileOptions' is not supported yet.
+--
+-- @since 0.2.1.0
+readSolution :: FileOptions -> SolutionFormat -> FilePath -> IO (Solution Scientific)
+readSolution _opt format fname = do
+  case format of
+    SolutionFormatCBC -> SolCBC.readFile fname
+    SolutionFormatCPLEX -> SolCPLEX.readFile fname
+    SolutionFormatGLPK -> SolGLPK.readFile fname
+    SolutionFormatGurobi -> SolGurobi.readFile fname
+    SolutionFormatHiGHS -> SolHiGHS.readFile fname
+    SolutionFormatMIPLIB -> SolMIPLIB.readFile fname
+    SolutionFormatPrintempsIncumbent -> SolPrintemps.readFile fname
+    SolutionFormatSCIP -> SolSCIP.readFile fname
+
+-- | Write a solution file.
+--
+-- Currently, only 'SolutionFormatGurobi' and 'SolutionFormatMIPLIB' are supported.
+--
+-- 'FileOptions' is not supported yet.
+--
+-- @since 0.2.1.0
+writeSolution :: FileOptions -> SolutionFormat -> FilePath -> Solution Scientific -> IO ()
+writeSolution _opt format fname sol = do
+  case format of
+    SolutionFormatGurobi -> SolGurobi.writeFile fname sol
+    SolutionFormatMIPLIB -> SolMIPLIB.writeFile fname sol
+    _ -> error ("Numeric.Optimization.MIP.writeSolution does not support: " ++ show format)
 
 -- $IO
 -- If this library is built with @WithZlib@ flag (enabled by default), 
