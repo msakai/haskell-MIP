@@ -57,7 +57,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
-import qualified Data.Text.Lazy.IO as TLIO
 import System.IO
 import Text.Megaparsec hiding  (ParseError)
 import Text.Megaparsec.Char hiding (string', eol, newline)
@@ -66,7 +65,7 @@ import qualified Text.Megaparsec.Char.Lexer as Lexer
 
 import Data.OptDir
 import qualified Numeric.Optimization.MIP.Base as MIP
-import Numeric.Optimization.MIP.FileUtils (ParseError)
+import Numeric.Optimization.MIP.FileUtils (ParseError, readTextFile)
 
 type Column = MIP.Var
 type Row = InternedText
@@ -98,10 +97,8 @@ parseString _ = parse (parser <* eof)
 -- | Parse a file containing MPS file data.
 parseFile :: MIP.FileOptions -> FilePath -> IO (MIP.Problem Scientific)
 parseFile opt fname = do
-  h <- openFile fname ReadMode
-  forM_ (MIP.optFileEncoding opt) (hSetEncoding h)
-  ret <- parse (parser <* eof) fname <$> TLIO.hGetContents h
-  case ret of
+  s <- readTextFile opt fname
+  case parse (parser <* eof) fname s of
     Left e -> throwIO (e :: ParseError TL.Text)
     Right a -> return a
 

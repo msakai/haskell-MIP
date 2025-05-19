@@ -59,7 +59,6 @@ import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.Builder.Int as B
 import qualified Data.Text.Lazy.Builder.Scientific as B
-import qualified Data.Text.Lazy.IO as TLIO
 import Data.OptDir
 import System.IO
 import Text.Megaparsec hiding (label, skipManyTill, ParseError)
@@ -67,7 +66,7 @@ import Text.Megaparsec.Char hiding (string', char', newline)
 import qualified Text.Megaparsec.Char.Lexer as P
 
 import qualified Numeric.Optimization.MIP.Base as MIP
-import Numeric.Optimization.MIP.FileUtils (ParseError)
+import Numeric.Optimization.MIP.FileUtils (ParseError, readTextFile)
 import Numeric.Optimization.MIP.Internal.Util (combineMaybe)
 
 -- ---------------------------------------------------------------------------
@@ -83,10 +82,8 @@ parseString _ = parse (parser <* eof)
 -- | Parse a file containing LP file data.
 parseFile :: MIP.FileOptions -> FilePath -> IO (MIP.Problem Scientific)
 parseFile opt fname = do
-  h <- openFile fname ReadMode
-  forM_ (MIP.optFileEncoding opt) (hSetEncoding h)
-  ret <- parse (parser <* eof) fname <$> TLIO.hGetContents h
-  case ret of
+  s <- readTextFile opt fname
+  case parse (parser <* eof) fname s of
     Left e -> throwIO (e :: ParseError TL.Text)
     Right a -> return a
 
