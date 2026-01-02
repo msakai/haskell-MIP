@@ -64,6 +64,24 @@ extra-source-files:
     samples/lp/test-user-cuts.lp
     samples/lp/test.lp
     samples/lp/unbounded-ip.lp
+    samples/lp/test-solution-cbc-infeasible.txt
+    samples/lp/test-solution-cbc-unbounded.txt
+    samples/lp/test-solution-cbc.txt
+    samples/lp/test-solution-cplex-unbounded.sol
+    samples/lp/test-solution-cplex.sol
+    samples/lp/test-solution-glpk-infeasible.sol
+    samples/lp/test-solution-glpk-long.sol
+    samples/lp/test-solution-glpk-unbounded.sol
+    samples/lp/test-solution-glpk.sol
+    samples/lp/test-solution-gurobi.sol
+    samples/lp/test-solution-highs-infeasible.sol
+    samples/lp/test-solution-highs-unbounded.sol
+    samples/lp/test-solution-highs.sol
+    samples/lp/test-solution-miplib-infeasible.sol
+    samples/lp/test-solution-miplib.sol
+    samples/lp/test-solution-scip.sol
+    samples/lp/test-solution-printemps-infeasible.json
+    samples/lp/test-solution-printemps.json
 extra-doc-files:
     doc-images/MIP-Status-diagram.png
 
