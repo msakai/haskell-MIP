@@ -153,7 +153,7 @@ jobs:
           curl -oCbc-releases.2.10.12-w64-msvc17-md.zip -L --insecure https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.12/Cbc-releases.2.10.12-w64-msvc17-md.zip
           7z e Cbc-releases.2.10.12-w64-msvc17-md.zip bin/cbc.exe
 
-          curl -owinglpk-4.65.zip -L --insecure https://jaist.dl.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip
+          curl -owinglpk-4.65.zip -L --insecure https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download
           7z x winglpk-4.65.zip
           cp glpk-4.65/w${{ matrix.windows_32_or_64 }}/glpk_4_65.lib glpk-4.65/w${{ matrix.windows_32_or_64 }}/glpk.lib
           echo ${GITHUB_WORKSPACE}\\glpk-4.65\\w${{ matrix.windows_32_or_64 }} >> $GITHUB_PATH
