@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - master
+      - v0.2.0.x
     tags:
       - '*'
   pull_request:
