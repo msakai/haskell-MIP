@@ -160,7 +160,7 @@ jobs:
           echo GLPK_LIB_DIR=${GITHUB_WORKSPACE}\\glpk-4.65\\w${{ matrix.windows_32_or_64 }} >> $GITHUB_ENV
           echo GLPK_INCLUDE_DIR=${GITHUB_WORKSPACE}\\glpk-4.65\\src >> $GITHUB_ENV
 
-          curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://jaist.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
+          curl -olp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip -L --insecure https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.5/lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip/download
           7z x lp_solve_5.5.2.5_exe_win${{ matrix.windows_32_or_64 }}.zip
 
           if [[ ${{ matrix.windows_32_or_64 }} == "32" ]]; then
