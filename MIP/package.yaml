@@ -12,6 +12,9 @@ extra-source-files:
 - doc-images/MIP-Status-diagram.tex
 - samples/mps/*.mps
 - samples/lp/*.lp
+- samples/lp/*.txt
+- samples/lp/*.sol
+- samples/lp/*.json
 extra-doc-files:
 - doc-images/MIP-Status-diagram.png
 
