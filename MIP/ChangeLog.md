@@ -2,6 +2,8 @@
 
 ## Unreleased changes
 
+* Produce more user-friendly error messages when the CBC solver exited with 0 but the output file was not generated (thanks to @dpvanbalen)
+
 ## 0.2.0.0 (2025-02-03)
 
 * `Problem` type

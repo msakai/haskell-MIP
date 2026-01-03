@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wall -Wno-unused-top-binds #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Test.MIPSolver (mipSolverTestGroup) where
 
 import Control.Arrow ((***))
+import Control.Exception
 import Control.Monad
 import Data.Default.Class
 import qualified Data.Map as Map
@@ -55,6 +57,20 @@ case_cbc_infeasible2 = do
       [ "expected: StatusInfeasible or StatusInfeasibleOrUnbounded"
       , " but got: " ++ show status
       ]
+
+case_cbc_no_output_file :: Assertion
+case_cbc_no_output_file = do
+  let prob = def
+       { MIP.constraints =
+           [ MIP.varExpr "x" - MIP.varExpr "x" MIP..<=. 0
+           ]
+       , MIP.varDomains = Map.fromList [("x", (MIP.ContinuousVariable, (0, 1)))]
+       }
+  ret <- try $ solve cbc def prob
+  let expected = userError "CBC returned exit code 0, but wrote no solution file. You may want to use the solveLogger or solveErrorLogger for more information"
+  case ret of
+    Left (e :: IOException) -> e @?= expected
+    Right _ -> assertFailure "An exception should have been raised"
 
 -- ------------------------------------------------------------------------
 
@@ -318,6 +334,7 @@ mipSolverTestGroup = testGroup "Test.MIPSolver" $ []
   , testCase "cbc unbounded" case_cbc_unbounded
   , testCase "cbc infeasible" case_cbc_infeasible
   , testCase "cbc infeasible2" case_cbc_infeasible2
+  , testCase "cbc no output file" case_cbc_no_output_file
   ]
 #endif
 #ifdef TEST_CPLEX
