@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import Foreign
 import Foreign.C
 
-import Data.ExtendedReal
+import Data.ExtendedReal hiding (toRealFloat)
 
 import qualified Numeric.Optimization.MIP as MIP
 import Numeric.Optimization.MIP.Solver.Base

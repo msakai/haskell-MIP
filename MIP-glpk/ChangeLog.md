@@ -2,6 +2,9 @@
 
 ## Unreleased changes
 
+* Dependencies
+  * Support `extended-reals >=0.2.7.0`
+
 ## 0.2.0.0 (2025-02-03)
 
 * Dependencies
