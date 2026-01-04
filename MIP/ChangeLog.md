@@ -1,7 +1,8 @@
 # Changelog for MIP
 
-## Unreleased changes
+## 0.2.0.1 (2026-01-05)
 
+* Add solution files needed for testing as `extra-source-files`
 * Produce more user-friendly error messages when the CBC solver exited with 0 but the output file was not generated (thanks to @dpvanbalen)
 
 ## 0.2.0.0 (2025-02-03)

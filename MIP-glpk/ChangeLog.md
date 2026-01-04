@@ -1,6 +1,6 @@
 # Changelog for MIP-glpk
 
-## Unreleased changes
+## 0.2.0.1 (2026-01-05)
 
 * Dependencies
   * Support `extended-reals >=0.2.7.0`
