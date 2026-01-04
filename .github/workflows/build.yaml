@@ -116,7 +116,8 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-          stack-version: 'latest'
+          # https://github.com/msakai/haskell-MIP/pull/93
+          stack-version: ${{ matrix.windows_32_or_64 == '32' && '3.5' || 'latest' }}
           stack-no-global: true
           stack-setup-ghc: true
 
