@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           MIP-glpk
-version:        0.2.0.0
+version:        0.2.0.1
 synopsis:       A GLPK backend to the MIP library.
 description:    Please see the README on GitHub at <https://github.com/msakai/haskell-MIP/tree/master/MIP-glpk#readme>
 category:       Math, Algorithms, Optimisation, Optimization
