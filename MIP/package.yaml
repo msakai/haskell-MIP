@@ -125,7 +125,7 @@ tests:
     - bytestring
     - filepath
     - HUnit
-    - quickcheck-instances >=0.3.19 && <0.4
+    - quickcheck-instances >=0.3.19 && <0.5
     - tasty >=0.10.1
     - tasty-hunit >=0.9 && <0.11
     - tasty-quickcheck >=0.8 && <0.12
