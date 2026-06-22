@@ -9,6 +9,7 @@
 * Make `Tol` an instance of `Eq`, `Ord`, and `Show`
 * Add `Default` instance for `SOSConstraint`
 * Produce more user-friendly error messages when the CBC solver exited with 0 but the output file was not generated (thanks to @dpvanbalen)
+* Change the default executable name for the printemps solver from `mps_solver` to `printemps`, and require PRINTEMPS version 2.8.0 or later (the standalone `mps_solver` executable has been deprecated)
 
 ## 0.2.0.0 (2025-02-03)
 
