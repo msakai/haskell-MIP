@@ -64,7 +64,7 @@ flags:
     default: False
 
   TestPrintemps:
-    description: run test cases that depend on mps_solver.exe command of printemps
+    description: run test cases that depend on printemps command of printemps
     manual: True
     default: False
 
