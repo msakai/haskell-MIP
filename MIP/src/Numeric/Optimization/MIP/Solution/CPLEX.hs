@@ -31,7 +31,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Text.XML as XML
 import Text.XML.Cursor
-import Numeric.Optimization.MIP (Solution)
+import Numeric.Optimization.MIP.Base (Solution)
 import qualified Numeric.Optimization.MIP.Base as MIP
 
 parseDoc :: XML.Document -> MIP.Solution Scientific

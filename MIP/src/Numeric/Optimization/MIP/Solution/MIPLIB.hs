@@ -32,8 +32,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
 import qualified Data.Text.Lazy.Builder.Scientific as B
 import qualified Data.Text.Lazy.IO as TLIO
-import Numeric.Optimization.MIP (Solution)
-import qualified Numeric.Optimization.MIP as MIP
+import Numeric.Optimization.MIP.Base (Solution)
+import qualified Numeric.Optimization.MIP.Base as MIP
 
 render :: MIP.Solution Scientific -> TL.Text
 render sol = B.toLazyText $ ls1 <> ls2 <> mconcat ls3
